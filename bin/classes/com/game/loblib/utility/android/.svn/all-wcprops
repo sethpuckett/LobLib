@@ -1,0 +1,53 @@
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/phase/!svn/ver/209/trunk/src/com/game/phase/utility/android
+END
+StandardSorter.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/phase/!svn/ver/2/trunk/src/com/game/phase/utility/android/StandardSorter.java
+END
+ObjectPool.java
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/phase/!svn/ver/85/trunk/src/com/game/phase/utility/android/ObjectPool.java
+END
+TObjectPool.java
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/phase/!svn/ver/85/trunk/src/com/game/phase/utility/android/TObjectPool.java
+END
+ShellSorter.java
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/phase/!svn/ver/2/trunk/src/com/game/phase/utility/android/ShellSorter.java
+END
+AllocationGuard.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/phase/!svn/ver/209/trunk/src/com/game/phase/utility/android/AllocationGuard.java
+END
+FixedSizeArray.java
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/phase/!svn/ver/85/trunk/src/com/game/phase/utility/android/FixedSizeArray.java
+END
+QuickSorter.java
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/phase/!svn/ver/2/trunk/src/com/game/phase/utility/android/QuickSorter.java
+END
+Sorter.java
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/phase/!svn/ver/2/trunk/src/com/game/phase/utility/android/Sorter.java
+END

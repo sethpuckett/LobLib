@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/phase/!svn/ver/235/trunk/src/com/game/phase/input
+END
+GameMotionEvent.java
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/phase/!svn/ver/235/trunk/src/com/game/phase/input/GameMotionEvent.java
+END
+ITouchListener.java
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/phase/!svn/ver/235/trunk/src/com/game/phase/input/ITouchListener.java
+END
+MotionType.java
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/phase/!svn/ver/160/trunk/src/com/game/phase/input/MotionType.java
+END
+InputManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/phase/!svn/ver/235/trunk/src/com/game/phase/input/InputManager.java
+END
+GameMotionEventPool.java
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/phase/!svn/ver/12/trunk/src/com/game/phase/input/GameMotionEventPool.java
+END
+TouchData.java
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/phase/!svn/ver/160/trunk/src/com/game/phase/input/TouchData.java
+END

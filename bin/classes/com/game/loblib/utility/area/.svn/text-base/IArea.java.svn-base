@@ -1,0 +1,23 @@
+package com.game.phase.utility.area;
+
+
+public interface IArea {
+	AreaType getType();
+	void getPosition(Vertex position);
+	float getPositionX();
+	float getPositionY();
+	void setPosition(Vertex position);
+	void setPosition(float x, float y);
+	void getCenter(Vertex center);
+	float getCenterX();
+	float getCenterY();
+	void setCenter(Vertex center);
+	void setCenter(float x, float y);
+	void getSize(Vertex size);
+	void setSize(float width, float height);
+	void setSize(Vertex size);
+	float getWidth();
+	float getHeight();
+	boolean getMaintainCenter();
+	void setMaintainCenter(boolean maintain);
+}

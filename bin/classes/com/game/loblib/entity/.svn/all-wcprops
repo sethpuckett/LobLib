@@ -1,0 +1,29 @@
+K 25
+svn:wc:ra_dav:version-url
+V 51
+/phase/!svn/ver/235/trunk/src/com/game/phase/entity
+END
+GameEntityManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/phase/!svn/ver/84/trunk/src/com/game/phase/entity/GameEntityManager.java
+END
+EntityAttributes.java
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/phase/!svn/ver/106/trunk/src/com/game/phase/entity/EntityAttributes.java
+END
+GameEntity.java
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/phase/!svn/ver/213/trunk/src/com/game/phase/entity/GameEntity.java
+END
+EntityHelper.java
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/phase/!svn/ver/235/trunk/src/com/game/phase/entity/EntityHelper.java
+END

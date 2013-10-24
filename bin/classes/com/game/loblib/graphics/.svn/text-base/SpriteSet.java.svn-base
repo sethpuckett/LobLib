@@ -1,0 +1,129 @@
+package com.game.phase.graphics;
+
+import com.game.phase.utility.Logger;
+
+public class SpriteSet {
+	protected static final StringBuffer _tag = new StringBuffer("SpriteSet");
+	protected int[] _background1 = new int[128];
+	protected int[] _background2 = new int[128];
+	protected int[] _player = new int[128];
+	protected int[] _mazeLow = new int[512];
+	protected int[] _mazeHigh = new int[2048];
+	protected int[] _foreground = new int[32];
+	protected int[] _uiLow = new int[32];
+	protected int[] _uiHigh = new int[32];
+	protected int[] _uiTop = new int[32];
+	
+	protected int _background1Count = 0;
+	protected int _background2Count = 0;
+	protected int _playerCount = 0;
+	protected int _mazeLowCount = 0;
+	protected int _mazeHighCount = 0;
+	protected int _foregroundCount = 0;
+	protected int _uiLowCount = 0;
+	protected int _uiHighCount = 0;
+	protected int _uiTopCount = 0;
+	
+	protected final int _layerCount = 9;
+	
+	public void addIndex(int index, int layer) {
+		switch (layer) {
+		case SpriteLayer.BACKGROUND1:
+			_background1[_background1Count++] = index;
+			break;
+		case SpriteLayer.BACKGROUND2:
+			_background2[_background2Count++] = index;
+			break;
+		case SpriteLayer.PLAYER:
+			_player[_playerCount++] = index;
+			break;
+		case SpriteLayer.MAZE_LOW:
+			_mazeLow[_mazeLowCount++] = index;
+			break;
+		case SpriteLayer.MAZE_HIGH:
+			_mazeHigh[_mazeHighCount++] = index;
+			break;
+		case SpriteLayer.FOREGROUND:
+			_foreground[_foregroundCount++] = index;
+			break;
+		case SpriteLayer.UI_LOW:
+			_uiLow[_uiLowCount++] = index;
+			break;
+		case SpriteLayer.UI_HIGH:
+			_uiHigh[_uiHighCount++] = index;
+			break;
+		case SpriteLayer.UI_TOP:
+			_uiTop[_uiTopCount++] = index;
+			break;
+		}
+	}
+
+	public void clear() {
+		_background1Count = 0;
+		_background2Count = 0;
+		_playerCount = 0;
+		_mazeLowCount = 0;
+		_mazeHighCount = 0;
+		_foregroundCount = 0;
+		_uiLowCount = 0;
+		_uiHighCount = 0;
+		_uiTopCount = 0;
+	}
+
+	public int[] getLayer(int layer) {
+		switch (layer) {
+		case SpriteLayer.BACKGROUND1:
+			return _background1;
+		case SpriteLayer.BACKGROUND2:
+			return _background2;
+		case SpriteLayer.PLAYER:
+			return _player;
+		case SpriteLayer.MAZE_LOW:
+			return _mazeLow;
+		case SpriteLayer.MAZE_HIGH:
+			return _mazeHigh;
+		case SpriteLayer.FOREGROUND:
+			return _foreground;
+		case SpriteLayer.UI_LOW:
+			return _uiLow;
+		case SpriteLayer.UI_HIGH:
+			return _uiHigh;
+		case SpriteLayer.UI_TOP:
+			return _uiTop;
+		default:
+			Logger.e(_tag, "Invalid layer");
+			return null;
+		}
+	}
+
+	public int getSpriteCount(int layer) {
+		switch (layer) {
+		case SpriteLayer.BACKGROUND1:
+			return _background1Count;
+		case SpriteLayer.BACKGROUND2:
+			return _background2Count;
+		case SpriteLayer.PLAYER:
+			return _playerCount;
+		case SpriteLayer.MAZE_LOW:
+			return _mazeLowCount;
+		case SpriteLayer.MAZE_HIGH:
+			return _mazeHighCount;
+		case SpriteLayer.FOREGROUND:
+			return _foregroundCount;
+		case SpriteLayer.UI_LOW:
+			return _uiLowCount;
+		case SpriteLayer.UI_HIGH:
+			return _uiHighCount;
+		case SpriteLayer.UI_TOP:
+			return _uiTopCount;
+		default:
+			Logger.e(_tag, "Invalid layer");
+			return 0;
+		}
+	}
+	
+	public int getLayerCount() {
+		return _layerCount;
+	}
+
+}

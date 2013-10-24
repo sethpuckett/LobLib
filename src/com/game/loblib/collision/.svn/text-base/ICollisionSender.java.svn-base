@@ -1,0 +1,8 @@
+package com.game.phase.collision;
+
+import com.game.phase.utility.area.IArea;
+
+public interface ICollisionSender {
+	long getLayers();
+	IArea getArea();
+}

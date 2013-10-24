@@ -1,0 +1,89 @@
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/phase/!svn/ver/237/trunk/src/com/game/phase/utility/area
+END
+RectangleManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/phase/!svn/ver/12/trunk/src/com/game/phase/utility/area/RectangleManager.java
+END
+RectangleCollision.java
+K 25
+svn:wc:ra_dav:version-url
+V 81
+/phase/!svn/ver/127/trunk/src/com/game/phase/utility/area/RectangleCollision.java
+END
+Circle.java
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/phase/!svn/ver/85/trunk/src/com/game/phase/utility/area/Circle.java
+END
+IArea.java
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/phase/!svn/ver/27/trunk/src/com/game/phase/utility/area/IArea.java
+END
+Rectangle.java
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/phase/!svn/ver/221/trunk/src/com/game/phase/utility/area/Rectangle.java
+END
+Intersection.java
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/phase/!svn/ver/128/trunk/src/com/game/phase/utility/area/Intersection.java
+END
+VertexPool.java
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/phase/!svn/ver/12/trunk/src/com/game/phase/utility/area/VertexPool.java
+END
+Area.java
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/phase/!svn/ver/29/trunk/src/com/game/phase/utility/area/Area.java
+END
+VertexManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/phase/!svn/ver/12/trunk/src/com/game/phase/utility/area/VertexManager.java
+END
+AreaType.java
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/phase/!svn/ver/12/trunk/src/com/game/phase/utility/area/AreaType.java
+END
+CirclePool.java
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/phase/!svn/ver/12/trunk/src/com/game/phase/utility/area/CirclePool.java
+END
+CircleManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/phase/!svn/ver/80/trunk/src/com/game/phase/utility/area/CircleManager.java
+END
+Vertex.java
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/phase/!svn/ver/237/trunk/src/com/game/phase/utility/area/Vertex.java
+END
+RectanglePool.java
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/phase/!svn/ver/13/trunk/src/com/game/phase/utility/area/RectanglePool.java
+END

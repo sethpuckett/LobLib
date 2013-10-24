@@ -1,0 +1,20 @@
+package com.game.phase.sound;
+
+import com.game.phase.R;
+import com.game.phase.utility.Logger;
+
+public class MusicHelper {
+	protected final static StringBuffer _tag = new StringBuffer("MusicHelper");
+	
+	public static int getResourceId(int sound) {
+		switch (sound) {
+		case Sound.BADLOOP:
+			return R.raw.badloop;
+		case Sound.THE_ABYSS:
+			return R.raw.the_abyss;
+		default:
+			Logger.e(_tag, "Invalid sound");
+			return 0;
+		}
+	}
+}

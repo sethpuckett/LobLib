@@ -1,0 +1,6 @@
+package com.game.phase.sound;
+
+public class SoundResourcePair {
+	public int ClientId;
+	public int PoolId;
+}

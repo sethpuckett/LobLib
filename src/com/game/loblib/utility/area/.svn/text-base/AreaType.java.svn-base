@@ -1,0 +1,8 @@
+package com.game.phase.utility.area;
+
+public enum AreaType {
+	Unknown,
+	Circle,
+	Rectangle,
+	Vertex
+}

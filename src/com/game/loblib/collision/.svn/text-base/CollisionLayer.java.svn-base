@@ -1,0 +1,14 @@
+package com.game.phase.collision;
+
+public class CollisionLayer {
+	public final static long UNKNOWN = 0;
+	
+	public final static long MAIN_BLOCK = 	1 << 0;
+	public final static long PLAYER =		1 << 1;
+	public final static long DAMAGE =		1 << 2;
+	public final static long GOAL =			1 << 3;
+	public final static long TRIGGER =		1 << 4;
+	public final static long GAME_ITEM =	1 << 5;
+	
+	public final static long ALL = Long.MAX_VALUE;
+}

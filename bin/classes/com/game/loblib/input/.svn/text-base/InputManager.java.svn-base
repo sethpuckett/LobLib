@@ -1,0 +1,173 @@
+package com.game.phase.input;
+
+import android.view.MotionEvent;
+
+import com.game.phase.utility.Logger;
+import com.game.phase.utility.android.FixedSizeArray;
+import com.game.phase.utility.area.Circle;
+import com.game.phase.utility.area.Intersection;
+import com.game.phase.utility.area.Rectangle;
+
+public class InputManager {
+	protected static StringBuffer _tag = new StringBuffer("InputManager");
+	protected FixedSizeArray<TouchData> _touchSubscribers = new FixedSizeArray<TouchData>(128);
+	protected FixedSizeArray<TouchData> _addList = new FixedSizeArray<TouchData>(32);
+	protected FixedSizeArray<TouchData> _removeList = new FixedSizeArray<TouchData>(32);
+	protected FixedSizeArray<TouchData> _activeSubscribers = new FixedSizeArray<TouchData>(128);
+	
+	protected boolean _handlingEvent = false;	
+	protected GameMotionEventPool _eventPool = new GameMotionEventPool(32);
+	protected int _primaryPointerId;
+	protected int _actionPointerId;
+	protected int _action;
+	
+	public InputManager() {
+	}
+	
+	public void subscribe(TouchData touchArea) {
+		int index = _touchSubscribers.find(touchArea, false);
+		if (index == -1) {
+			if (!_handlingEvent)
+				_touchSubscribers.add(touchArea);
+			else
+				_addList.add(touchArea);
+		}
+		else
+			Logger.w(_tag, "touchArea found; cannot add twice");
+	}
+	
+	public void unsubscribe(TouchData touchArea) {
+		int index = _touchSubscribers.find(touchArea, false);
+		if (index != -1) {
+			if (!_handlingEvent)
+				_touchSubscribers.remove(touchArea, false);
+			else
+				_removeList.add(touchArea);
+		}
+		else
+			Logger.w(_tag, "touchArea not found; cannot remove");
+	}
+	
+	public boolean onTouchEvent(MotionEvent event) {
+		_handlingEvent = true;
+		
+		int subscriberCount = _touchSubscribers.getCount();
+		if (subscriberCount > 0) {		
+			int action = event.getAction();
+			int actionPointerIndex = (action & MotionEvent.ACTION_POINTER_INDEX_MASK) >> MotionEvent.ACTION_POINTER_INDEX_SHIFT;
+        	_actionPointerId = event.getPointerId(actionPointerIndex);
+        	boolean primary = _actionPointerId == _primaryPointerId; 
+        	
+			switch (action & MotionEvent.ACTION_MASK) {
+			case MotionEvent.ACTION_MOVE:
+				_action = MotionType.ACTION_MOVE;
+				break;
+			case MotionEvent.ACTION_DOWN:
+				_action = MotionType.ACTION_DOWN;
+		        _primaryPointerId = event.getPointerId(0);
+		        primary = true;
+		        break;
+		    case MotionEvent.ACTION_UP:
+		    	_action = MotionType.ACTION_UP;
+		        _primaryPointerId = 0;
+		        break;
+		    case MotionEvent.ACTION_CANCEL:
+		    	_action = MotionType.ACTION_CANCEL;
+		        _primaryPointerId = 0;
+		        break;
+		    case MotionEvent.ACTION_POINTER_UP:
+		    	_action = MotionType.ACTION_POINTER_UP;
+		        if (primary) {
+		            final int newPointerIndex = actionPointerIndex == 0 ? 1 : 0;
+		            _primaryPointerId = event.getPointerId(newPointerIndex);
+		        }
+		        break;
+		    case MotionEvent.ACTION_POINTER_DOWN:
+		    	_action = MotionType.ACTION_POINTER_DOWN;
+		    	break;
+		    default:
+		    	_action = MotionType.UNKNOWN;
+		    	break;
+			}
+			
+			GameMotionEvent gEvent = _eventPool.allocate();
+			
+			gEvent.init(event.getX(actionPointerIndex), event.getY(actionPointerIndex), _action, primary, _actionPointerId);
+			
+			for (int i = 0; i < subscriberCount; i++) {
+				TouchData data = _touchSubscribers.get(i);
+				
+				//if pointer moved off touch listener call onTouchAbort
+				int subscriberIndex = -1;
+				if ((_action == MotionType.ACTION_MOVE &&
+					(subscriberIndex = _activeSubscribers.find(data, false)) >= 0) ||
+					_action == MotionType.ACTION_CANCEL)
+				{
+					if (_action == MotionType.ACTION_CANCEL) {
+						_activeSubscribers.remove(subscriberIndex);
+						data.getListener().onTouchAbort(gEvent);
+					}
+					else {
+						switch (data.TouchArea.getType()) {
+						case Circle:
+							if (!Intersection.check((Circle)data.TouchArea, data.UseCamera ? gEvent.CameraCoords : gEvent.ScreenCoords)) {
+								_activeSubscribers.remove(subscriberIndex);
+								data.getListener().onTouchAbort(gEvent);
+							}
+							break;
+						case Rectangle:
+							if (!Intersection.check((Rectangle)data.TouchArea, data.UseCamera ? gEvent.CameraCoords : gEvent.ScreenCoords)) {
+								_activeSubscribers.remove(subscriberIndex);
+								data.getListener().onTouchAbort(gEvent);	
+							}
+							break;
+						}
+					}
+				}
+				
+				if ((!data.PrimaryTouchOnly || primary) &&
+					((_action & data.MotionTypes) > 0)) {
+					switch (data.TouchArea.getType()) {
+					case Circle:
+						if (Intersection.check((Circle)data.TouchArea, data.UseCamera ? gEvent.CameraCoords : gEvent.ScreenCoords)) {
+							if ((data.MotionTypes & (MotionType.ACTION_UP | MotionType.ACTION_POINTER_UP | MotionType.ACTION_MOVE)) > 0 &&
+								_activeSubscribers.find(data, false) < 0) {
+								_activeSubscribers.add(data);
+							}
+							data.getListener().onTouchEvent(gEvent);
+						}
+						break;
+					case Rectangle:
+						if (Intersection.check((Rectangle)data.TouchArea, data.UseCamera ? gEvent.CameraCoords : gEvent.ScreenCoords)) {
+							if ((data.MotionTypes & (MotionType.ACTION_UP | MotionType.ACTION_POINTER_UP | MotionType.ACTION_MOVE)) > 0 &&
+								_activeSubscribers.find(data, false) < 0) {
+								_activeSubscribers.add(data);
+							}
+							data.getListener().onTouchEvent(gEvent);
+						}
+						break;
+					default:
+						Logger.e(_tag, "invalid area type");
+						break;
+					}
+				}
+			}
+			
+			_eventPool.release(gEvent);
+		}
+		
+		_handlingEvent = false;
+		_touchSubscribers.addAll(_addList);
+		_addList.clear();
+		_touchSubscribers.removeAll(_removeList, false);
+		_removeList.clear();
+		
+		return true;
+	}
+
+	public void flush() {
+		_touchSubscribers.clear();
+		_addList.clear();
+		_removeList.clear();
+	}
+}

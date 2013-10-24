@@ -1,0 +1,120 @@
+package com.game.phase.graphics;
+
+import com.game.phase.utility.Global;
+import com.game.phase.utility.android.FixedSizeArray;
+import com.game.phase.utility.area.Intersection;
+
+public class SpriteManager {
+	protected static final StringBuffer _tag = new StringBuffer("SpriteManager");
+	protected SpritePool _spritePool;
+	protected DrawCallPool _drawCallPool;
+	protected FixedSizeArray<Sprite> _allocatedSprites;
+	protected FixedSizeArray<DrawCall>[] _spriteQueues;
+	protected SpriteSet[] _spriteSets;
+	protected int _spriteQueueIndex;
+	protected float _updateTime = 0;
+
+	@SuppressWarnings("unchecked")
+	public SpriteManager() {
+		_spriteQueues = new FixedSizeArray[2];
+		_spriteQueues[0] = new FixedSizeArray<DrawCall>(1024);
+		_spriteQueues[1] = new FixedSizeArray<DrawCall>(1024);
+		_allocatedSprites = new FixedSizeArray<Sprite>(2048);
+		_spritePool = new SpritePool(2048);
+		_drawCallPool = new DrawCallPool(2048);
+		_spriteSets = new SpriteSet[2];
+		_spriteSets[0] = new SpriteSet();
+		_spriteSets[1] = new SpriteSet();
+	}
+	
+	public Sprite make(int image) {
+		Sprite sprite = _spritePool.allocate();
+		sprite.reset();
+		SpriteHelper.setupSprite(sprite, image);
+		_allocatedSprites.add(sprite);
+		return sprite;
+	}
+
+	public void release(Sprite sprite) {
+		_allocatedSprites.remove(sprite, false);
+		_spritePool.release(sprite);
+	}
+
+	public void update(float updateTime) {
+		_updateTime = updateTime;
+	}
+	
+	public void draw(Sprite sprite, int layer) {
+		synchronized (_spriteQueues[_spriteQueueIndex]) {
+			sprite.update(_updateTime);
+			if (!sprite.UseCamera || Intersection.check(Global.Camera.CameraArea, sprite.Area)) {
+				_spriteQueues[_spriteQueueIndex].add(makeDrawCall(sprite));
+				_spriteSets[_spriteQueueIndex].addIndex(
+						_spriteQueues[_spriteQueueIndex].getCount() - 1, layer);
+			}
+		}
+	}
+
+	public void frameComplete() {
+		Global.Renderer.setDrawQueue(_spriteQueues[_spriteQueueIndex],
+				_spriteSets[_spriteQueueIndex]);
+		_spriteQueueIndex = ~_spriteQueueIndex & 1;
+		int count = _spriteQueues[_spriteQueueIndex].getCount();
+		for (int i = 0; i < count; i++)
+			_drawCallPool.release(_spriteQueues[_spriteQueueIndex].get(i));
+		_spriteQueues[_spriteQueueIndex].clear();
+		_spriteSets[_spriteQueueIndex].clear();
+	}
+
+	public void onPause() {
+		int count = _allocatedSprites.getCount();
+		for (int i = 0; i < count; i++) {
+			_allocatedSprites.get(i).Texture.Dirty = true;
+		}
+	}
+	
+	public void onResume() {
+		int count = _allocatedSprites.getCount();
+		for (int i = 0; i < count; i++) {
+			Global.View.bindTexture(_allocatedSprites.get(i).Texture);
+		}
+	}
+
+	public void freeTextures() {
+		int count = _allocatedSprites.getCount();
+		for (int i = 0; i < count; i++) {
+			Sprite s = _allocatedSprites.get(i);
+			s.Texture.TextureId = 0;
+			s.Texture.Dirty = true;
+		}
+		Global.Renderer.freeTextures();
+	}
+
+	public int allocatedSpriteCount() {
+		if (_allocatedSprites != null)
+			return _allocatedSprites.getCount();
+		else
+			return 0;
+	}
+
+	public void flush() {
+		while (_allocatedSprites.getCount() > 0) {
+			Sprite sprite = _allocatedSprites.removeLast();
+			_spritePool.release(sprite);
+		}
+	}
+
+	protected DrawCall makeDrawCall(Sprite sprite) {
+		DrawCall dc = _drawCallPool.allocate();
+		dc.Alpha = sprite.Alpha;
+		dc.FrameOffset = sprite.FrameOffset;
+		dc.Frames = sprite.Frames;
+		dc.Height = sprite.Area.Size.Y;
+		dc.PositionX = sprite.Area.Position.X;
+		dc.PositionY = sprite.Area.Position.Y;
+		dc.TextureId = sprite.Texture.TextureId;
+		dc.Width = sprite.Area.Size.X;
+		dc.UseCamera = sprite.UseCamera;
+		return dc;
+	}
+}

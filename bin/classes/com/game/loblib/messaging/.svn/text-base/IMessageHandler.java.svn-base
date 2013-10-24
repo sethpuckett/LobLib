@@ -1,0 +1,6 @@
+package com.game.phase.messaging;
+
+
+public interface IMessageHandler {
+	public void handleMessage(Message message);
+}

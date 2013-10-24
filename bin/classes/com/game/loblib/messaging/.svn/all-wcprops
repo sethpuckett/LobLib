@@ -1,0 +1,65 @@
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/phase/!svn/ver/236/trunk/src/com/game/phase/messaging
+END
+MessageManager.java
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/phase/!svn/ver/189/trunk/src/com/game/phase/messaging/MessageManager.java
+END
+MessageSubscriptionComparator.java
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/phase/!svn/ver/2/trunk/src/com/game/phase/messaging/MessageSubscriptionComparator.java
+END
+MessageSubscriptionPool.java
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/phase/!svn/ver/12/trunk/src/com/game/phase/messaging/MessageSubscriptionPool.java
+END
+Message.java
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/phase/!svn/ver/22/trunk/src/com/game/phase/messaging/Message.java
+END
+MessageType.java
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/phase/!svn/ver/240/trunk/src/com/game/phase/messaging/MessageType.java
+END
+MessageSubscription.java
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/phase/!svn/ver/22/trunk/src/com/game/phase/messaging/MessageSubscription.java
+END
+IMessageHandler.java
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/phase/!svn/ver/2/trunk/src/com/game/phase/messaging/IMessageHandler.java
+END
+DataReleaser.java
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/phase/!svn/ver/80/trunk/src/com/game/phase/messaging/DataReleaser.java
+END
+MessageData.java
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/phase/!svn/ver/2/trunk/src/com/game/phase/messaging/MessageData.java
+END
+MessagePool.java
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/phase/!svn/ver/20/trunk/src/com/game/phase/messaging/MessagePool.java
+END

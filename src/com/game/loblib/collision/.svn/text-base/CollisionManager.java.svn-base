@@ -1,0 +1,104 @@
+package com.game.phase.collision;
+
+import com.game.phase.level.Level;
+import com.game.phase.messaging.IMessageHandler;
+import com.game.phase.messaging.Message;
+import com.game.phase.messaging.MessageType;
+import com.game.phase.utility.Manager;
+import com.game.phase.utility.android.FixedSizeArray;
+import com.game.phase.utility.area.Area;
+import com.game.phase.utility.area.IArea;
+import com.game.phase.utility.area.Rectangle;
+
+public class CollisionManager implements IMessageHandler {
+	protected final StringBuffer _tag = new StringBuffer("CollisionManager");
+	
+	protected final static int PARTITION_ROW = 8;
+	protected final static int TOTAL_PARTITIONS = PARTITION_ROW * PARTITION_ROW;
+	
+	@SuppressWarnings("unchecked")
+	protected FixedSizeArray<ICollisionSender>[] _senderGrid = new FixedSizeArray[TOTAL_PARTITIONS];
+	protected FixedSizeArray<Rectangle> _grid = new FixedSizeArray<Rectangle>(TOTAL_PARTITIONS);
+	
+	public CollisionManager() {
+		for (int i = 0; i < TOTAL_PARTITIONS; i++)
+			_senderGrid[i] = new FixedSizeArray<ICollisionSender>(512);
+		
+		for (int y = PARTITION_ROW - 1; y >= 0; y--) {
+			for (int x = 0; x < PARTITION_ROW; x++) {
+				_grid.add(new Rectangle(0,0,0,0,false));
+			}
+		}
+	}
+	
+	public void init() {
+		Manager.Message.subscribe(this, MessageType.LEVEL_CELL_WIDTH_SET);
+	}
+	
+	// Checks for collision on the provided layer.
+	// Returns the first ICollisionSender found with which a collision occurs.
+	// If no collision is found returns null.
+	public ICollisionSender getCollision(IArea area, long layers) {	
+		ICollisionSender returnSender = null;
+		for (int i = 0; i < TOTAL_PARTITIONS; i ++) {
+			// partition check
+			if (Area.collision(_grid.get(i), area)) {
+				FixedSizeArray<ICollisionSender> senders = _senderGrid[i];
+				int count = senders.getCount();
+				for (int j = 0; j < count; j++) {
+					ICollisionSender sender = senders.get(j);
+					// layer check
+					if ((sender.getLayers() & layers) > 0) {
+						// collision check
+						if (Area.collision(area, sender.getArea())) {
+							Manager.Message.sendMessage(MessageType.COLLISION, sender);
+							if (returnSender == null)
+								returnSender = sender;
+						}
+					}
+				}
+			}
+		}
+		
+		// no collision found
+		return returnSender;
+	}
+
+	public void addSender(ICollisionSender sender) {
+		IArea senderArea = sender.getArea();
+		for (int i = 0; i <  TOTAL_PARTITIONS; i++) {
+			if (Area.collision(_grid.get(i), senderArea)) {
+				_senderGrid[i].add(sender);
+			}
+		}
+	}
+	
+	public void removeSender(ICollisionSender sender) {
+		IArea senderArea = sender.getArea();
+		for (int i = 0; i <  TOTAL_PARTITIONS; i++) {
+			if (Area.collision(_grid.get(i), senderArea)) {
+				_senderGrid[i].remove(sender, false);
+			}
+		}
+	}
+
+	@Override
+	public void handleMessage(Message message) {
+		//update grid size/position when level cell width changes
+		if (message.Type == MessageType.LEVEL_CELL_WIDTH_SET) {
+			float width = (float)Level.CELL_COUNT * (float)Manager.Level.getCellWidth() / (float)PARTITION_ROW;
+			for (int y = PARTITION_ROW - 1; y >= 0; y--) {
+				for (int x = 0; x < PARTITION_ROW; x++) {
+					Rectangle rec = _grid.get((y * PARTITION_ROW) + x);
+					rec.setSize(width, width);
+					rec.setPosition(x * width, y * width);
+				}
+			}
+		}
+	}
+
+	public void flush() {
+		for (int i = 0; i < _senderGrid.length; i++)
+			_senderGrid[i].clear();
+	}
+}

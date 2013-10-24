@@ -1,0 +1,261 @@
+package com.game.phase.graphics;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.IntBuffer;
+
+import javax.microedition.khronos.egl.EGLConfig;
+import javax.microedition.khronos.opengles.GL10;
+import javax.microedition.khronos.opengles.GL11;
+import javax.microedition.khronos.opengles.GL11Ext;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.opengl.GLSurfaceView;
+import android.opengl.GLUtils;
+
+import com.game.phase.messaging.MessageType;
+import com.game.phase.utility.Global;
+import com.game.phase.utility.Logger;
+import com.game.phase.utility.Manager;
+import com.game.phase.utility.android.FixedSizeArray;
+import com.game.phase.utility.area.Vertex;
+
+public class PhaseRenderer implements GLSurfaceView.Renderer {
+	
+	public float Width;
+	public float Height;
+	
+	protected StringBuffer _tag = new StringBuffer("PhaseRenderer");
+	protected GL10 _gl;
+	protected boolean _screenCreated;
+	protected FixedSizeArray<Texture> _textureMap = new FixedSizeArray<Texture>(256);
+	protected Texture _texSearch = new Texture();
+	protected final Vertex _screenSize = new Vertex();
+	
+	protected FixedSizeArray<DrawCall> _drawQueue = null;
+	protected SpriteSet _spriteSet = null;
+	protected Object _drawLock = new Object();
+	protected boolean _drawQueueSwapped = false;
+	protected boolean _paused;
+	
+	protected boolean _requestCallback = false;
+	
+	public PhaseRenderer() {
+		_textureMap.setComparator(new TextureComparator());
+	}
+	
+	@Override
+	public void onDrawFrame(GL10 gl) {
+		if (!_paused) {
+			synchronized (_drawLock) {
+				while (!_drawQueueSwapped) {
+					try {
+						_drawLock.wait();
+					} catch (InterruptedException e) {
+						// ignore
+					}
+				}
+				_drawQueueSwapped = false;
+			}
+
+			if (_requestCallback) {
+				_requestCallback = false;
+				Global.Game.onSurfaceReady();
+			}
+			
+			synchronized(this) {
+				gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
+				gl.glMatrixMode(GL10.GL_MODELVIEW);
+				synchronized(_drawQueue){
+					float cameraX = Global.Camera.CameraArea.Position.X;
+					float cameraY = Global.Camera.CameraArea.Position.Y;
+					float xOffset = 0;
+					float yOffset = 0;
+					for (int layer = 1; layer < _spriteSet.getLayerCount() + 1; layer++) {
+						int[] indices = _spriteSet.getLayer(layer);
+						int indexCount = _spriteSet.getSpriteCount(layer);
+						for (int i = 0; i < indexCount; i++) {
+							DrawCall call = _drawQueue.get(indices[i]);
+							gl.glColor4f(call.Alpha, call.Alpha, call.Alpha, call.Alpha);
+							gl.glBindTexture(GL10.GL_TEXTURE_2D, call.TextureId);
+							
+							if (call.UseCamera) {
+								xOffset = cameraX;
+								yOffset = cameraY - Global.Camera.YOffset;
+							}
+							else {
+								xOffset = 0;
+								yOffset = 0;
+							}
+		
+							((GL11) gl).glTexParameteriv(GL10.GL_TEXTURE_2D, 
+						            GL11Ext.GL_TEXTURE_CROP_RECT_OES, 
+						           call.Frames, 
+						           call.FrameOffset);
+								
+							((GL11Ext) gl).glDrawTexfOES(call.PositionX - xOffset, 
+									call.PositionY - yOffset, 
+									0f, 
+									call.Width, 
+									call.Height);
+						}
+					}
+				}
+			}
+		}
+	}
+
+	@Override
+	public void onSurfaceChanged(GL10 gl, int width, int height) {
+        _screenSize.X = width;
+        _screenSize.Y = height;
+        Width = width;
+        Height = height;
+                
+		gl.glViewport(0, 0, width, height);
+        gl.glMatrixMode(GL10.GL_PROJECTION);
+        gl.glLoadIdentity();
+        gl.glOrthof(0.0f, width, 0.0f, height, 0.0f, 1.0f);
+        gl.glShadeModel(GL10.GL_FLAT);
+        gl.glBlendFunc(GL10.GL_ONE, GL10.GL_ONE_MINUS_SRC_ALPHA);
+        gl.glEnable(GL10.GL_BLEND);
+        gl.glColor4x(0x10000, 0x10000, 0x10000, 0x10000);
+        gl.glEnable(GL10.GL_TEXTURE_2D);
+        
+        Global.Game.onSurfaceReady();
+        
+        Manager.Message.sendMessage(MessageType.SCREEN_SIZE_SET, _screenSize);
+	}
+
+	@Override
+	public void onSurfaceCreated(GL10 gl, EGLConfig config) {
+		_gl = gl;
+
+        gl.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_FASTEST);
+        gl.glClearColor(0f, 0f, 0f, 1f);
+        gl.glShadeModel(GL10.GL_FLAT);
+        gl.glDisable(GL10.GL_DEPTH_TEST);
+        gl.glDisable(GL10.GL_DITHER);
+        gl.glDisable(GL10.GL_LIGHTING);
+        gl.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);	
+		gl.glEnableClientState(GL10.GL_TEXTURE_COORD_ARRAY);
+		
+		IntBuffer size = IntBuffer.allocate(1);
+		gl.glGetIntegerv(GL10.GL_MAX_TEXTURE_SIZE, size);
+		
+		_screenCreated = true;
+		Manager.Message.sendMessage(MessageType.SURFACE_CREATED);
+	}
+
+	public boolean isSurfaceCreated() {
+		return _screenCreated;
+	}
+
+	// bind texture to sprite based on resourceId
+	public void bindTexture(Texture tex) {
+		if (_gl == null) {
+			IllegalStateException e = new IllegalStateException("gl not set");
+			Logger.e(_tag, "gl has not been set; unable to bind texture", e);
+			throw e;
+		}
+		
+		// check cache
+		_texSearch.ResourceId = tex.ResourceId;
+		int texIndex = _textureMap.find(_texSearch, false);
+		if (texIndex != -1) {
+			Texture match = _textureMap.get(texIndex);
+			tex.TextureId = match.TextureId;
+			tex.Dirty = false;
+			return;
+		}
+		
+		InputStream is = Global.Context.getResources().openRawResource(tex.ResourceId);
+		Bitmap bitmap = null;
+		try {
+			bitmap = BitmapFactory.decodeStream(is);
+		} finally {
+			//Always clear and close
+			try {
+				is.close();
+				is = null;
+			} catch (IOException e) {
+			}
+		}
+		
+		int[] texArr = new int[1];
+		_gl.glGenTextures(1, texArr, 0);
+		int texId = texArr[0];
+		
+		_gl.glBindTexture(GL10.GL_TEXTURE_2D, texId);
+	    _gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MIN_FILTER, GL10.GL_NEAREST);
+	    _gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_MAG_FILTER, GL10.GL_LINEAR);
+	    _gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_S, GL10.GL_CLAMP_TO_EDGE);
+	    _gl.glTexParameterf(GL10.GL_TEXTURE_2D, GL10.GL_TEXTURE_WRAP_T, GL10.GL_CLAMP_TO_EDGE);
+	    //_gl.glTexEnvf(GL10.GL_TEXTURE_ENV, GL10.GL_TEXTURE_ENV_MODE, GL10.GL_REPLACE);
+	    _gl.glTexEnvf(GL10.GL_TEXTURE_ENV, GL10.GL_TEXTURE_ENV_MODE, GL10.GL_MODULATE);
+
+	    GLUtils.texImage2D(GL10.GL_TEXTURE_2D, 0, bitmap, 0);
+	
+	    int error = _gl.glGetError();
+	    if (error != GL10.GL_NO_ERROR)
+	    	Logger.e(_tag, "GL error!");
+
+    	tex.TextureId = texId;
+    	tex.Dirty = false;
+    	
+    	// add to cache
+    	Texture t = new Texture();
+    	t.ResourceId = tex.ResourceId;
+    	t.TextureId = tex.TextureId;
+    	t.Dirty = false;
+    	_textureMap.add(t);
+    	
+    	bitmap.recycle();
+	}
+
+	public void freeTextures() {
+		int count = _textureMap.getCount();
+		int[] arr = new int[count];
+		for (int i = 0; i < count; i++) {
+			Texture t = _textureMap.get(i);
+			arr[i] = t.TextureId;
+		}
+		_gl.glDeleteTextures(count, arr, 0);
+		_textureMap.clear();
+	}
+	
+	// blocks while onDrawFrame is in progress
+	public synchronized void waitDrawingComplete() {
+	}
+	
+	public void setDrawQueue(FixedSizeArray<DrawCall> queue, SpriteSet set) {
+		synchronized (_drawLock) {
+			_drawQueue = queue;
+			_spriteSet = set;
+			_drawQueueSwapped = true;
+			_drawLock.notify();
+		}
+	}
+
+	public void onPause() {
+		_textureMap.clear();
+		_gl = null;
+		_screenCreated = false;
+		_paused = true;
+		synchronized(_drawLock) {
+			_drawQueueSwapped = true;
+			_drawLock.notify();
+		}
+	}
+	
+	public void onResume() {
+		_paused = false;
+	}
+	
+	public void requestCallback() {
+		_requestCallback = true;
+	}
+}
+
+

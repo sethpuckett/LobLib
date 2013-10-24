@@ -1,0 +1,158 @@
+package com.game.phase.utility.area;
+
+import com.game.phase.utility.Logger;
+import com.game.phase.utility.android.AllocationGuard;
+
+public class Circle extends AllocationGuard implements IArea {
+	protected final static StringBuffer _tag = new StringBuffer("Circle");
+	public final Vertex Center = new Vertex();
+	public float Radius = 1f;
+	public boolean MaintainCenter = true;
+
+	public Circle() {
+	}
+
+	public Circle(float x, float y, float radius) {
+		Center.Undefined = false;
+		Center.X = x;
+		Center.Y = y;
+		Radius = radius;
+	}
+
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("Center: ");
+		sb.append(Center.toString());
+		sb.append(" Radius: ");
+		sb.append(Radius);
+		return sb.toString();
+	}
+
+	public AreaType getType() {
+		return AreaType.Circle;
+	}
+
+	public void getPosition(Vertex position) {
+		position.X = Center.X - Radius;
+		position.Y = Center.Y - Radius;
+	}
+
+	public float getPositionX() {
+		return Center.X - Radius;
+	}
+
+	public float getPositionY() {
+		return Center.Y - Radius;
+	}
+
+	public void setPosition(Vertex position) {
+		if (!position.Undefined)
+			setPosition(position.X, position.Y);
+		else
+			Logger.e(_tag, "Vertex undefined; cannot set position");
+	}
+
+	public void setPosition(float x, float y) {
+		Center.Undefined = false;
+		Center.X = x + Radius;
+		Center.Y = y + Radius;
+	}
+
+	public void changePosition(Vertex offset) {
+		if (!offset.Undefined)
+			changePosition(offset.X, offset.Y);
+		else
+			Logger.e(_tag, "Vertex undefined; cannot change position");
+	}
+
+	public void changePosition(float xOffset, float yOffset) {
+		Center.X += xOffset;
+		Center.Y += yOffset;
+	}
+
+	public void getCenter(Vertex center) {
+		Area.sync(center, Center);
+	}
+
+	public float getCenterX() {
+		return Center.X;
+	}
+
+	public float getCenterY() {
+		return Center.Y;
+	}
+
+	public void setCenter(Vertex center) {
+		Area.sync(Center, center);
+	}
+
+	public void setCenter(float x, float y) {
+		Center.Undefined = false;
+		Center.X = x;
+		Center.Y = y;
+	}
+
+	public float getRadius() {
+		return Radius;
+	}
+
+	public float getWidth() {
+		return getRadius();
+	}
+	
+	public float getHeight() {
+		return getRadius();
+	}
+	
+	// TODO: changing or setting radius should take MaintainCenter into account
+	public void setRadius(float radius) {
+		if (radius >= 0) {
+			if (!MaintainCenter) {
+				Center.X += (radius - Radius);
+				Center.Y += (radius - Radius);
+			}
+			Radius = radius;
+		}
+		else
+			Logger.e(_tag, "radius not set; cannot be less than 0");
+	}
+
+	public void changeRadius(float offset) {
+		setRadius(Radius + offset);
+	}
+
+	public void getSize(Vertex size) {
+		size.Undefined = false;
+		size.X = Radius * 2;
+		size.Y = Radius * 2;
+	}
+
+	public void setSize(float width, float height) {
+		if (width != height)
+			Logger.e(_tag, "Circle must have equal width & height");
+		else
+			setRadius(width);
+	}
+	
+	public void setSize(Vertex size) {
+		setSize(size.X, size.Y);
+	}
+	
+	public boolean getMaintainCenter() {
+		return MaintainCenter;
+	}
+	
+	public void setMaintainCenter(boolean maintain) {
+		MaintainCenter = maintain;
+	}
+	
+	public static void getPoint(Vertex center, float radius, float angle, Vertex output) {
+		if (!center.Undefined) {
+			output.Undefined = false;
+			output.X = center.X + (radius * (float)Math.cos(angle));
+			output.Y = center.Y + (radius * (float)Math.sin(angle));
+		}
+		else
+			Logger.e(_tag, "cannot get point; vertex undefined");
+	}
+}

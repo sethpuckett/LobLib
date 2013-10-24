@@ -1,0 +1,211 @@
+package com.game.phase.utility.area;
+
+import com.game.phase.exception.UndefinedVertexException;
+import com.game.phase.utility.Logger;
+import com.game.phase.utility.android.AllocationGuard;
+
+public class Rectangle extends AllocationGuard implements IArea {
+	protected final static StringBuffer _tag = new StringBuffer("Rectangle");
+	public final Vertex Position = new Vertex();
+	public final Vertex Size = new Vertex();
+	public boolean MaintainCenter = true;
+
+	public Rectangle() {
+	}
+	
+	public Rectangle(Vertex size, Vertex position) {
+		this(size.X, size.Y, position.X, position.Y);
+	}
+	
+	public Rectangle(Vertex size, Vertex position, boolean maintainCenter) {
+		this(size.X, size.Y, position.X, position.Y, maintainCenter);
+	}
+	
+	public Rectangle(float width, float height, float xPosition, float yPosition) {
+		Position.X = xPosition;
+		Position.Y = yPosition;
+		Size.X = width;
+		Size.Y = height;
+	}
+	
+	public Rectangle(float width, float height, float xPosition, float yPosition, boolean maintainCenter) {
+		Position.X = xPosition;
+		Position.Y = yPosition;
+		Size.X = width;
+		Size.Y = height;
+		MaintainCenter = maintainCenter;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o)
+			return true;
+
+		Rectangle r1 = (Rectangle) o;
+		
+		if (r1.Size.equals(Size) && r1.Position.equals(Position))
+			return true;
+		else 
+			return false;
+	}
+	
+	@Override
+	public int hashCode() {
+		int hash = 1;	
+		hash = hash * 31 + Float.floatToIntBits(Size.X);
+		hash = hash * 31 + Float.floatToIntBits(Size.Y);
+		hash = hash * 31 + Float.floatToIntBits(Position.Y);
+		hash = hash * 31 + Float.floatToIntBits(Position.Y);
+		return hash;
+	}
+	
+	public AreaType getType() {
+		return AreaType.Rectangle;
+	}
+	
+	public void getPosition(Vertex position) {
+		Area.sync(position, Position);
+	}
+	
+	public float getPositionX() {
+		return Position.X;
+	}
+	
+	public float getPositionY() {
+		return Position.Y;
+	}
+
+	public void setPosition(Vertex position) {
+		if (!position.Undefined)
+			setPosition(position.X, position.Y);
+		else
+			Logger.e(_tag, "cannot set position; vertex undefined");
+	}
+	
+	public void setPosition(float x, float y) {
+		Position.X = x;
+		Position.Y = y;
+	}
+	
+	public void setCirclePosition(float xCenter, float yCenter, float radius, float angleOffset) {
+		Position.X = xCenter + (radius * (float)Math.cos(angleOffset));
+		Position.Y = yCenter + (radius * (float)Math.sin(angleOffset));
+	}
+	
+	public void changePosition(Vertex offset) {
+		if (!offset.Undefined) {
+			changePosition(offset.X, offset.Y);
+		}
+		else {
+			UndefinedVertexException e = new UndefinedVertexException();
+			Logger.e(_tag, "Vertex undefined; can't change position", e);
+		}
+	}
+	
+	public void changePosition(float xOffset, float yOffset) {
+		Position.X += xOffset;
+		Position.Y += yOffset;
+	}
+		
+	public void getCenter(Vertex center) {
+		center.X = Position.X + (Size.X / 2f);
+		center.Y = Position.Y + (Size.Y / 2f);
+	}
+	
+	public float getCenterX() {
+		return Position.X + (Size.X / 2f);
+	}
+	
+	public float getCenterY() {
+		return Position.Y + (Size.Y / 2f);
+	}
+	
+	public void setCenter(Vertex center) {
+		if (!center.Undefined) {
+			setCenter(center.X, center.Y);
+		}
+		else {
+			UndefinedVertexException e = new UndefinedVertexException();
+			Logger.e(_tag, "Vertex undefined; can't set center position", e);
+		}
+	}
+	
+	public void setCenter(float x, float y) {
+		Position.X = x - (Size.X / 2f);
+		Position.Y = y - (Size.Y / 2f);
+	}
+	
+	public void setCircleCenter(float xCenter, float yCenter, float radius, float angleOffset) {
+		Position.X = (Size.X / 2f) + xCenter + (radius * (float)Math.cos(angleOffset));
+		Position.Y = (Size.Y / 2f) + yCenter + (radius * (float)Math.sin(angleOffset));
+	}
+
+	public void getSize(Vertex size) {
+		Area.sync(size, Size);
+	}
+	
+	public float getWidth() {
+		return Size.X;
+	}
+	
+	public float getHeight() {
+		return Size.Y;
+	}
+	
+	public void setSize(Vertex size) {
+		if (!size.Undefined) {
+			setSize(size.X, size.Y);
+		}
+		else {
+			UndefinedVertexException e = new UndefinedVertexException();
+			Logger.e(_tag, "Vertex undefined; can't set size", e);
+		}
+	}
+	
+	public void setSize(float width, float height) {
+		if (MaintainCenter) {
+			float xChange = Size.X - width;
+			float yChange = Size.Y - height;
+			changePosition(xChange / 2f, yChange / 2f);
+		}
+		Size.X = width;
+		Size.Y = height;
+		
+		if (Size.X < 0) {
+			Logger.e(_tag, "Width cannot be less than 0");
+			Size.X = 0;
+		}
+		if (Size.Y < 0) {
+			Logger.e(_tag, "Height cannot be less than 0");
+			Size.Y = 0;
+		}
+	}
+
+	public void changeSize(Vertex offset) {
+		if (!offset.Undefined) {
+			changeSize(offset.X, offset.Y);
+		}
+		else {
+			UndefinedVertexException e = new UndefinedVertexException();
+			Logger.e(_tag, "Vertex undefined; can't change size", e);
+		}
+	}
+	
+	public void changeSize(float xOffset, float yOffset) {
+		setSize(Math.max(Size.X + xOffset, 0), Math.max(Size.Y + yOffset, 0));
+	}
+
+	public boolean getMaintainCenter() {
+		return MaintainCenter;
+	}
+	
+	public void setMaintainCenter(boolean maintain) {
+		MaintainCenter = maintain;
+	}
+	
+	public static void sync(Rectangle dest, Rectangle src) {
+		Area.sync(dest.Position, src.Position);
+		Area.sync(dest.Size, src.Size);
+		dest.MaintainCenter = src.MaintainCenter;
+	}
+}

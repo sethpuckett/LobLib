@@ -1,0 +1,10 @@
+package com.game.phase.messaging;
+
+public interface DataReleaser {
+    // Example Use:
+    //msg.Releaser = new DataReleaser() {
+    //	public <T> void release(T t) {Manager.Vertex.release((Vertex)t);}
+    //};
+	
+	<T> void release(T t);
+}

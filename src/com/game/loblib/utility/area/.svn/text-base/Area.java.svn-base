@@ -1,0 +1,198 @@
+package com.game.phase.utility.area;
+
+import com.game.phase.utility.Logger;
+import com.game.phase.utility.Manager;
+
+public class Area {
+	protected final static  StringBuffer _tag = new StringBuffer("Area");
+
+	public static void sync(IArea dest, IArea src) {
+		switch (dest.getType()) {
+		case Rectangle:
+			switch (src.getType()) {
+			case Rectangle:
+				sync((Rectangle)dest, (Rectangle)src);
+				break;
+			case Circle:
+				sync((Rectangle)dest, (Circle)src);
+				break;
+			case Vertex:
+				sync((Rectangle)dest, (Vertex)src);
+				break;
+			default:
+				Logger.e(_tag, "Invalid area type");
+			}
+			break;
+		case Circle:
+			switch (src.getType()) {
+			case Rectangle:
+				sync((Circle)dest, (Rectangle)src);
+				break;
+			case Circle:
+				sync((Circle)dest, (Circle)src);
+				break;
+			case Vertex:
+				sync((Circle)dest, (Vertex)src);
+				break;
+			default:
+				Logger.e(_tag, "Invalid area type");
+			}
+			break;
+		case Vertex:
+			switch (src.getType()) {
+			case Vertex:
+				sync((Vertex)dest, (Vertex)src);
+				break;
+			case Rectangle:
+				Logger.e(_tag, "Cannot sync rectangle to vertex");
+				break;
+			case Circle:
+				Logger.e(_tag, "Cannot sync circle to vertex");
+				break;
+			}
+			break;
+		default:
+			Logger.e(_tag, "cannot sync; Invalid area type");
+			break;
+		}
+	}
+
+	public static void sync (Rectangle dest, Rectangle src) {
+		sync(dest.Position, src.Position);
+		sync(dest.Size, src.Size);
+		dest.MaintainCenter = src.MaintainCenter;
+	}
+
+	public static void sync (Rectangle dest, Circle src) {
+		src.getPosition(dest.Position);
+		dest.Size.X = src.Radius * 2f;
+		dest.Size.Y = src.Radius * 2f;
+		dest.MaintainCenter = src.MaintainCenter;
+	}
+	
+	public static void sync (Rectangle dest, Vertex src) {
+		sync(dest.Position, src);
+		dest.Size.X = 1;
+		dest.Size.Y = 1;
+	}
+	
+	public static void sync (Circle dest, Rectangle src) {
+		if (src.Size.X != src.Size.Y) {
+			Logger.e(_tag, "Cannot sync; Circle must have matching width and height");
+			return;
+		}
+		dest.Radius = src.Size.X / 2f;
+		dest.setPosition(src.Position);
+	}
+	
+	public static void sync(Circle dest, Circle src) {
+		dest.Radius = src.Radius;
+		sync(dest.Center, src.Center);
+		dest.MaintainCenter = src.MaintainCenter;
+	}
+	
+	public static void sync(Circle dest, Vertex src) {
+		dest.Radius = .5f;
+		sync(dest.Center, src);
+	}
+
+	public static void sync(Vertex dest, Vertex src) {
+		dest.Undefined = src.Undefined;
+		dest.X = src.X;
+		dest.Y = src.Y;
+	}
+	
+	public static boolean collision(IArea a1, IArea a2) {
+		if (a1.getType() == AreaType.Circle && a2.getType()  == AreaType.Circle)
+			return Intersection.check((Circle)a1, (Circle)a2);
+		else if (a1.getType() == AreaType.Circle && a2.getType() == AreaType.Rectangle)
+			return Intersection.check((Rectangle)a2, (Circle)a1);
+		else if (a1.getType() == AreaType.Circle && a2.getType() == AreaType.Vertex)
+			return Intersection.check((Circle)a1, (Vertex)a2);
+		else if (a1.getType() == AreaType.Rectangle && a2.getType() == AreaType.Rectangle)
+			return Intersection.check((Rectangle)a1, (Rectangle)a2);
+		else if (a1.getType() == AreaType.Rectangle && a2.getType() == AreaType.Circle)
+			return Intersection.check((Rectangle)a1, (Circle)a2);
+		else if (a1.getType() == AreaType.Rectangle && a2.getType() == AreaType.Vertex)
+			return Intersection.check((Rectangle)a1, (Vertex)a2);
+		else if (a1.getType() == AreaType.Vertex && a2.getType() == AreaType.Vertex)
+			return Intersection.check((Vertex)a1, (Vertex)a2);
+		else if (a1.getType() == AreaType.Vertex && a2.getType() == AreaType.Circle)
+			return Intersection.check((Circle)a2, (Vertex)a1);
+		else if (a1.getType() == AreaType.Vertex && a2.getType() == AreaType.Rectangle)
+			return Intersection.check((Rectangle)a2, (Vertex)a1);
+		else {
+			Logger.e(_tag, "Invalid collision check");
+			return false;
+		}
+	}
+
+	public static IArea allocate(AreaType type) {
+		IArea area = null;
+		switch (type) {
+		case Rectangle:
+			area = new Rectangle();
+			break;
+		case Circle:
+			area = new Circle();
+			break;
+		case Vertex:
+			area = new Vertex();
+			break;
+		default:
+			Logger.e(_tag, "cannot allocate; invalid type");
+			area = null;
+			break;
+		}
+		return area;
+	}
+	
+	public static IArea allocate(AreaType type, boolean maintainCenter) {
+		IArea area = allocate(type);
+		area.setMaintainCenter(maintainCenter);
+		return area;
+	}
+	
+	public static IArea managedAllocate(AreaType type) {
+		IArea area = null;
+		switch (type) {
+		case Rectangle:
+			area = Manager.Rectangle.allocate();
+			break;
+		case Circle:
+			area = Manager.Circle.allocate();
+			break;
+		case Vertex:
+			area = Manager.Vertex.allocate();
+			break;
+		default:
+			Logger.e(_tag, "cannot set area; invalid type");
+			area = null;
+			break;
+		}
+		return area;
+	}
+	
+	public static IArea managedAllocate(AreaType type, boolean maintainCenter) {
+		IArea area = managedAllocate(type);
+		area.setMaintainCenter(maintainCenter);
+		return area;
+	}
+	
+	public static void release(IArea area) {
+		switch (area.getType()) {
+		case Rectangle:
+			Manager.Rectangle.release((Rectangle)area);
+			break;
+		case Circle:
+			Manager.Circle.release((Circle)area);
+			break;
+		case Vertex:
+			Manager.Vertex.release((Vertex)area);
+			break;
+		default:
+			Logger.e(_tag, "cannot release; invalid type");
+			break;
+		}
+	}
+}

@@ -1,0 +1,207 @@
+package com.game.phase.graphics;
+
+import com.game.phase.messaging.MessageType;
+import com.game.phase.utility.Logger;
+import com.game.phase.utility.Manager;
+import com.game.phase.utility.android.AllocationGuard;
+import com.game.phase.utility.android.FixedSizeArray;
+import com.game.phase.utility.area.Rectangle;
+
+public class Sprite extends AllocationGuard {
+	protected static final StringBuffer _tag = new StringBuffer("Sprite");
+	
+	protected int _currentFrame = 0;
+	protected float _timeLeft = 0;
+	protected boolean _animationPlaying = false;
+	protected FixedSizeArray<int[]> _animationFrames;
+	protected int _currentAnimation = 0;
+	protected int _currentAnimationIndex = 0;
+	
+	public Texture Texture = new Texture();
+	public Rectangle Area = new Rectangle();
+	public float Alpha = 1f;
+	public int Type = SpriteType.STATIC;
+	public float FrameRate = -1f;
+	public int[] Frames;
+	public int FrameOffset = 0;
+	public int FrameCount = 1;
+	public boolean UseCamera = true;
+	
+	public Sprite() {
+	}
+	
+	public void update(float updateTime) {
+		if (Type == SpriteType.STATIC || Type == SpriteType.UNKNOWN || !_animationPlaying)
+			return;
+		else {
+			_timeLeft -= updateTime;
+			
+			if (_timeLeft <= 0) {
+				int frameJump = 0;
+				while (_timeLeft <= 0) {
+					frameJump++;
+					_timeLeft += (1000f / FrameRate);
+				}
+				
+				if (_animationFrames == null)
+					updateSimpleAnimation(frameJump);
+				else
+					updateComplexAnimation(frameJump);
+				
+				FrameOffset = _currentFrame * 4;
+			}
+		}
+	}
+	
+	public void animate() {
+		if (Type == SpriteType.UNKNOWN || 
+			Type == SpriteType.STATIC ||
+			FrameRate <= 0 ||
+			FrameCount < 2)
+			Logger.e(_tag, "Cannot animate; invalid state");
+		else {
+			_animationPlaying = true;
+			_timeLeft = 0f;
+		}
+	}
+	
+	public void setFrame(int frame) {
+		if (_animationFrames == null) {
+			if (frame < FrameCount) {
+				_currentFrame = frame;
+				FrameOffset = frame * 4;
+			}
+			else
+				Logger.e(_tag, "cannot set frame; out of range");
+		}
+		else {
+			if (frame < _animationFrames.get(_currentAnimation).length) {
+				_currentAnimationIndex = frame;
+				_currentFrame = _animationFrames.get(_currentAnimation)[frame];
+				FrameOffset = _currentFrame * 4;
+			}
+			else
+				Logger.e(_tag, "cannot set frame; out of range");
+		}
+	}
+
+	public int getFrame() {
+		if (_animationFrames == null)
+			return _currentFrame;
+		else
+			return _currentAnimationIndex;
+	}
+	
+	public int getFrameWidth() {
+		return Frames[FrameOffset + 2];
+	}
+	
+	public int getFrameHeight() {
+		return Frames[FrameOffset + 1];
+	}
+	
+	public void stopAnimation() {
+		_animationPlaying = false;
+	}
+	
+	// returns true if the sprite is in a drawable state
+	public boolean isValid() {
+		if (!Texture.Dirty &&
+			Texture.ResourceId != 0 &&
+			Texture.TextureId != 0 &&
+			Area.getWidth() > 0f &&
+			Area.getHeight() > 0f)
+			return true;
+		else
+			return false;
+	}
+
+	public void addAnimation(int[] frames) {
+		if (_animationFrames == null) {
+			_animationFrames = new FixedSizeArray<int[]>(8);
+		}
+		_animationFrames.add(frames);
+	}
+	
+	public void setAnimation(int animation) {
+		setAnimation(animation, false);
+	}
+	
+	public void setAnimation(int animation, boolean restart) {
+		if (_animationFrames == null || animation >= _animationFrames.getCount()) {
+			Logger.e(_tag, "Invalid animation index");
+			animation = 0;
+		}
+		else
+			_currentAnimation = animation;
+		
+		if (restart || _animationFrames.get(_currentAnimation).length <= _currentAnimationIndex)
+			setFrame(0);		
+	}
+
+	public void reset() {
+		_currentFrame = 0;
+		_timeLeft = 0;
+		_animationPlaying = false;
+		_animationFrames = null;
+		_currentAnimation = 0;
+		_currentAnimationIndex = 0;
+		Texture.Dirty = true;
+		Texture.ResourceId = 0;
+		Texture.TextureId = 0;
+		Area.MaintainCenter = true;
+		Area.setPosition(0, 0);
+		Area.setSize(0, 0);
+		Alpha = 1f;
+		Type = SpriteType.STATIC;
+		FrameRate = 1f;
+		Frames = null;
+		FrameOffset = 0;
+		FrameCount = 1;
+		UseCamera = true;
+	}
+	
+	protected void updateSimpleAnimation(int frameJump) {
+		if (Type == SpriteType.SINGLE_ANIMATION) {
+			if (_currentFrame + frameJump >= FrameCount) {
+				_currentFrame = FrameCount - 1;
+				_animationPlaying = false;
+				Manager.Message.sendMessage(MessageType.ANIMATION_FINISHED, this);
+			}
+			else 
+				_currentFrame += frameJump;
+		}
+		else {
+			_currentFrame += frameJump;
+			while (_currentFrame >= FrameCount)
+				_currentFrame -= FrameCount;
+		}
+	}
+	
+	protected void updateComplexAnimation(int frameJump) {
+		int[] frames = _animationFrames.get(_currentAnimation);
+		if (Type == SpriteType.SINGLE_ANIMATION) {
+			if (_currentAnimationIndex + frameJump >= frames.length) {
+				_currentAnimationIndex = frames.length -1;
+				_currentFrame = frames[_currentAnimationIndex];
+				_animationPlaying = false;
+				Manager.Message.sendMessage(MessageType.ANIMATION_FINISHED, this);
+			}
+			else {
+				_currentAnimationIndex += frameJump;
+				_currentFrame = frames[_currentAnimationIndex];
+			}
+		}
+		else {
+			_currentAnimationIndex += frameJump;
+			while (_currentAnimationIndex >= frames.length) {
+				_currentAnimationIndex -= frames.length;
+			}
+			_currentFrame = frames[_currentAnimationIndex];
+		}
+	}
+
+
+}
+
+

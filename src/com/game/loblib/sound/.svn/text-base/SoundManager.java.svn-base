@@ -1,0 +1,188 @@
+package com.game.phase.sound;
+
+import android.content.Context;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.media.SoundPool;
+
+import com.game.phase.messaging.MessageType;
+import com.game.phase.utility.Global;
+import com.game.phase.utility.Logger;
+import com.game.phase.utility.Manager;
+import com.game.phase.utility.android.FixedSizeArray;
+
+public class SoundManager {
+	protected final static StringBuffer _tag = new StringBuffer("SoundManager");
+	
+	protected SoundPool _soundPool;
+	protected AudioManager _audioManager;
+	protected FixedSizeArray<SoundResourcePair> _soundMap = new FixedSizeArray<SoundResourcePair>(20);;
+	protected FixedSizeArray<SoundResourcePair> _unusedSoundMap = new FixedSizeArray<SoundResourcePair>(20);
+	protected SoundResourcePair _searchPair = new SoundResourcePair();
+	protected int _loadCount;
+	protected boolean _soundEnabled = true;
+	
+	protected MediaPlayer _mediaPlayer;
+	
+	protected int _musicId = 0;
+	protected boolean _musicPlaying = false;
+	protected boolean _musicPaused = false;
+	
+	public SoundManager() {
+		_audioManager = (AudioManager)Global.Context.getSystemService(Context.AUDIO_SERVICE);
+		_soundMap.setComparator(new SoundResourcePairComparator());
+		for (int i = 0; i < 20; i++)
+			_unusedSoundMap.add(new SoundResourcePair());
+		_soundPool = new SoundPool(6, AudioManager.STREAM_MUSIC, 0);
+	}
+	
+	public void init() {
+		_soundPool = new SoundPool(6, AudioManager.STREAM_MUSIC, 0);
+		_soundEnabled = Global.Settings.getSoundEnabled();
+	}
+	
+	public void pause() {
+		
+		pauseMusic();
+	}
+	
+	public void unpause() {
+		if (_musicId != Sound.UNKNOWN)
+			playMusic(_musicId);
+	}
+	
+	public void close() {
+		while (_soundMap.getCount() > 0)
+			_unusedSoundMap.add(_soundMap.removeLast());
+		_soundPool.release();
+		_soundPool = null;
+		_loadCount = 0;
+	}
+	
+	public void load(int resourceId, int id) {
+		if (_loadCount < 20) {
+			SoundResourcePair pair = _unusedSoundMap.removeLast();
+			pair.ClientId = id;
+			pair.PoolId = _soundPool.load(Global.Context, resourceId, 1);
+			_soundMap.add(pair);
+			_loadCount++;
+		}
+		else
+			Logger.e(_tag, "cannot load sound; sound limit reached");
+	}
+	
+	public void play(int id) {
+		playLooped(id, 0);
+	}
+	
+	public void playMusic(int sound) {
+		if (sound == Sound.CONTINUE_MUSIC)
+			sound = _musicId;
+		if (!_soundEnabled) {
+			if (_musicId != sound)
+				_musicId = sound;
+			return;
+		}
+		if (_musicId == sound) {
+			if (_musicPaused) {
+				_mediaPlayer.start();
+				_musicPaused = false;
+				_musicPlaying = true;
+			}
+			else if (!_musicPlaying) {
+				if (_mediaPlayer != null)
+					_mediaPlayer.release();
+				int rId = MusicHelper.getResourceId(sound);
+				if (rId != 0) {
+					_mediaPlayer = MediaPlayer.create(Global.Context, rId);
+					_mediaPlayer.start();
+					_musicPlaying = true;
+				}
+			}
+		}
+		else {
+			if (_musicId != 0) {
+				_mediaPlayer.release();
+			}
+			int rId = MusicHelper.getResourceId(sound);
+			if (rId != 0) {
+				_mediaPlayer = MediaPlayer.create(Global.Context, rId);
+				_mediaPlayer.start();
+				_musicId = sound;
+				_musicPlaying = true;
+				_musicPaused = false;
+			}
+		}
+	}
+	
+	public void pauseMusic() {
+		if (_musicPlaying)
+			_mediaPlayer.pause();
+		_musicPlaying = false;
+		_musicPaused = true;
+	}
+	
+	public void stopMusic() {
+		if ((_musicPlaying || _musicPaused) && _mediaPlayer != null)
+			_mediaPlayer.stop();
+		_musicPlaying = false;
+		_musicPaused = false;
+	}
+	
+	public void enableSound() {
+		if (!_soundEnabled) {
+			_soundEnabled = true;
+			Global.Settings.setSoundEnabled(_soundEnabled);
+			Manager.Message.sendMessage(MessageType.SOUND_ENABLED);
+		}
+		else
+			Logger.w(_tag, "sound already enabled");
+	}
+	
+	public void disableSound() {
+		if (_soundEnabled) {
+			_soundEnabled = false;
+			if (_musicPlaying)
+				_mediaPlayer.pause();
+			_musicPlaying = false;
+			_musicPaused = true;
+			Global.Settings.setSoundEnabled(_soundEnabled);
+			int count = _soundMap.getCount();
+			for (int i = 0; i < count; i++)
+				_soundPool.stop(_soundMap.get(i).PoolId);
+			Manager.Message.sendMessage(MessageType.SOUND_DISABLED);
+		}
+		else
+			Logger.w(_tag, "sound already disabled");
+	}
+	
+	public boolean isEnabled() {
+		return _soundEnabled;
+	}
+
+	public void flush() {
+		close();
+	}
+	
+	protected void playLooped(int id, int loops) {
+		if (!_soundEnabled)
+			return;
+		
+		int index = getPoolId(id);
+		if (index < 0)
+			return;
+		
+		float volume = (float)_audioManager.getStreamVolume(AudioManager.STREAM_MUSIC) /
+			(float)_audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+		
+		_soundPool.play(_soundMap.get(index).PoolId, volume, volume, 1, loops, 1f);
+	}
+	
+	protected int getPoolId(int clientId) {
+		_searchPair.ClientId = clientId;
+		int index = _soundMap.find(_searchPair, false);
+		if (index < 0) 
+			Logger.e(_tag, "invalid sound id");
+		return index;
+	}
+}
