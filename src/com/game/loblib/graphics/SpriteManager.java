@@ -15,7 +15,7 @@ public class SpriteManager {
 	protected float _updateTime = 0;
 
 	@SuppressWarnings("unchecked")
-	public SpriteManager(SpriteSet set1, SpriteSet set2) {
+	public SpriteManager( ) {
 		_spriteQueues = new FixedSizeArray[2];
 		_spriteQueues[0] = new FixedSizeArray<DrawCall>(1024);
 		_spriteQueues[1] = new FixedSizeArray<DrawCall>(1024);
@@ -23,8 +23,8 @@ public class SpriteManager {
 		_spritePool = new SpritePool(2048);
 		_drawCallPool = new DrawCallPool(2048);
 		_spriteSets = new SpriteSet[2];
-		_spriteSets[0] = set1;
-		_spriteSets[1] = set2;
+		_spriteSets[0] = new SpriteSet();
+		_spriteSets[1] = new SpriteSet();
 	}
 	
 	// Allocates and sets up a Sprite object based on provided image
