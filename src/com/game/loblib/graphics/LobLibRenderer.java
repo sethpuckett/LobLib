@@ -26,7 +26,7 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 	public float Width;
 	public float Height;
 	
-	protected StringBuffer _tag = new StringBuffer("PhaseRenderer");
+	protected StringBuffer _tag = new StringBuffer("LobLibRenderer");
 	protected GL10 _gl;
 	protected boolean _screenCreated;
 	protected FixedSizeArray<Texture> _textureMap = new FixedSizeArray<Texture>(256);

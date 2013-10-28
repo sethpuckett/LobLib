@@ -10,7 +10,7 @@ public class GameSettings {
 	protected SharedPreferences _prefs;
 	
 	public GameSettings() {
-		_prefs = Global.Context.getSharedPreferences("phase", Context.MODE_PRIVATE);
+		_prefs = Global.Context.getSharedPreferences("game", Context.MODE_PRIVATE);
 	}
 	
 	public boolean getSoundEnabled() {

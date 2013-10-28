@@ -27,6 +27,7 @@ public class LobLibActivity extends Activity {
 	protected MusicHelper _musicHelper;
 
 	protected static StringBuffer _tag = new StringBuffer("LobLibActivity");
+	
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,10 +60,7 @@ public class LobLibActivity extends Activity {
         Global.Game = game;
         Global.Renderer = renderer;
         Global.Camera = new Camera();
-        
-        if (_gameSettings == null)
-        	_gameSettings = new GameSettings();
-        Global.Settings = _gameSettings;
+        Global.Settings = new GameSettings();
         
         if (_commonData == null)
         	_commonData = new CommonData();
