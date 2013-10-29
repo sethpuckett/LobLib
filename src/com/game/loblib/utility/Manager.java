@@ -27,18 +27,18 @@ public class Manager {
 	public static SoundManager Sound;
 	public static TriggerManager Trigger;
 	
-	public static void init() {
-		Entity = new GameEntityManager();
-		Sprite = new SpriteManager();
-		Input = new InputManager();
-		Message = new MessageManager();
-		Collision = new CollisionManager();
-		Vertex = new VertexManager();
-		Rectangle = new RectangleManager();
-		Circle = new CircleManager();
-		Screen = new ScreenManager();
-		Sound = new SoundManager();
-		Trigger = new TriggerManager();
+	public static void init(ComponentFactory factory) {
+		Entity = factory.CreateGameEntityManager();
+		Sprite = factory.CreateSpriteManager();
+		Input = factory.CreateInputManager();
+		Message = factory.CreateMessageManager();
+		Collision = factory.CreateCollisionManager();
+		Vertex = factory.CreateVertexManager();
+		Rectangle = factory.CreateRectangleManager();
+		Circle = factory.CreateCircleManager();
+		Screen = factory.CreateScreenManager();
+		Sound = factory.CreateSoundManager();
+		Trigger = factory.CreateTriggerManager();
 		
 		Collision.init();
 		Screen.init();

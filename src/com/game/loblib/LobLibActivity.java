@@ -1,37 +1,27 @@
 package com.game.loblib;
 
-import com.game.loblib.LobLibGame;
-import com.game.loblib.LobLibView;
-import com.game.loblib.graphics.Camera;
+import android.app.Activity;
+import android.media.AudioManager;
+import android.os.Bundle;
+import android.view.KeyEvent;
+import android.view.WindowManager;
+
 import com.game.loblib.graphics.LobLibRenderer;
-import com.game.loblib.graphics.SpriteHelper;
-import com.game.loblib.sound.MusicHelper;
-import com.game.loblib.utility.CommonData;
-import com.game.loblib.utility.GameSettings;
+import com.game.loblib.utility.ComponentFactory;
 import com.game.loblib.utility.Global;
 import com.game.loblib.utility.Logger;
 import com.game.loblib.utility.android.AllocationGuard;
 
-import android.media.AudioManager;
-import android.os.Bundle;
-import android.app.Activity;
-import android.view.KeyEvent;
-import android.view.WindowManager;
-
 public class LobLibActivity extends Activity {
-	
-	// These can be overridden in child classes
-	protected GameSettings _gameSettings;
-	protected CommonData _commonData;
-	protected SpriteHelper _spriteHelper;
-	protected MusicHelper _musicHelper;
-
 	protected static StringBuffer _tag = new StringBuffer("LobLibActivity");
 	
+	protected ComponentFactory _componentFactory;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
+        // Set display to full screen & always on
         getWindow().setFlags(
         		WindowManager.LayoutParams.FLAG_FULLSCREEN,
         		WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -40,41 +30,31 @@ public class LobLibActivity extends Activity {
         		  WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         
-        Logger.init();
+        // Initialize to default component factory if child class does not specify
+        if (_componentFactory == null)
+        	_componentFactory = new ComponentFactory();
         
+        // Create and initialize components
+        Logger.init();
         AllocationGuard.sGuardActive = false;
         
-        //TODO: testing
-		//Editor editor = getSharedPreferences("loblib", Context.MODE_PRIVATE).edit();
-		//editor.putInt("maxLevel", 21);
-		//editor.commit();
-        
-        LobLibView view = new LobLibView(this);
+        LobLibView view = _componentFactory.CreateView();
         setContentView(view);
-        LobLibGame game = new LobLibGame();
-        LobLibRenderer renderer = new LobLibRenderer();
+        LobLibGame game = _componentFactory.CreateGame();
+        LobLibRenderer renderer = _componentFactory.CreateRenderer();
         view.setRenderer(renderer);
         
         Global.Context = this;
         Global.View = view;
         Global.Game = game;
         Global.Renderer = renderer;
-        Global.Camera = new Camera();
-        Global.Settings = new GameSettings();
+        Global.Camera = _componentFactory.CreateCamera();
+        Global.Settings = _componentFactory.CreateGameSettings();
+        Global.Data =_componentFactory.CreateCommonData();
+        Global.SpriteHelper =_componentFactory.CreateSpriteHelper();
+        Global.MusicHelper = _componentFactory.CreateMusicHelper();
         
-        if (_commonData == null)
-        	_commonData = new CommonData();
-        Global.Data = _commonData;
-        
-        if (_spriteHelper == null)
-        	_spriteHelper = new SpriteHelper();
-        Global.SpriteHelper = _spriteHelper;
-        
-        if (_musicHelper == null)
-        	_musicHelper = new MusicHelper();
-        Global.MusicHelper = _musicHelper;
-        
-        game.init();
+        game.init(_componentFactory);
         Global.Camera.init();
         Runtime.getRuntime().gc();
     }

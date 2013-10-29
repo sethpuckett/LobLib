@@ -4,6 +4,7 @@ import android.view.MotionEvent;
 
 import com.game.loblib.LobLibGameThread;
 import com.game.loblib.messaging.MessageType;
+import com.game.loblib.utility.ComponentFactory;
 import com.game.loblib.utility.Global;
 import com.game.loblib.utility.Manager;
 
@@ -17,8 +18,8 @@ public class LobLibGame {
 		_gameThread = new LobLibGameThread();
 	}
 	
-	public void init() {
-		Manager.init();
+	public void init(ComponentFactory factory) {
+		Manager.init(factory);
 		Global.View.init();
 		
 		Manager.Message.sendMessage(MessageType.GAME_INIT);
