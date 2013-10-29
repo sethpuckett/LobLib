@@ -72,7 +72,7 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 					float cameraY = Global.Camera.CameraArea.Position.Y;
 					float xOffset = 0;
 					float yOffset = 0;
-					for (int layer = 1; layer < _spriteSet.getLayerCount() + 1; layer++) {
+					for (int layer = 0; layer < _spriteSet.getLayerCount(); layer++) {
 						int[] indices = _spriteSet.getLayer(layer);
 						int indexCount = _spriteSet.getSpriteCount(layer);
 						for (int i = 0; i < indexCount; i++) {
