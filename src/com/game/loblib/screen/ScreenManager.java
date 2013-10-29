@@ -27,22 +27,6 @@ public class ScreenManager {
 		}
 	}
 
-	// Ensure that transition is valid and begin transition process
-	protected void handleCode(int code) {
-		// Disable allocation guard to perform cleanup during screen transition
-		AllocationGuard.sGuardActive = false;
-		Manager.Sound.close();
-		Manager.Sound.init();
-		switch (_active.getType()) {
-			// fill with specfic game code
-			default:
-				break;
-		}
-		// Run garbage collector during downtime
-		Runtime.getRuntime().gc();
-		AllocationGuard.sGuardActive = true;
-	}
-
 	// Handles back button presses
 	public boolean onBackDown() {
 		boolean ret = false;
@@ -75,5 +59,24 @@ public class ScreenManager {
 		}
 		
 		return ret;
+	}
+
+	// Should be overridden by child classes to handle specific screen codes
+	protected void onHandleCode(int code) {
+		// Nothing to do
+	}
+	
+	// Ensure that transition is valid and begin transition process
+	private void handleCode(int code) {
+		// Disable allocation guard to perform cleanup during screen transition
+		AllocationGuard.sGuardActive = false;
+		Manager.Sound.close();
+		Manager.Sound.init();
+
+		onHandleCode(code);
+		
+		// Run garbage collector during downtime
+		Runtime.getRuntime().gc();
+		AllocationGuard.sGuardActive = true;
 	}
 }
