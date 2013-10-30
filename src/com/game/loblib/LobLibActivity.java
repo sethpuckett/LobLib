@@ -30,10 +30,12 @@ public class LobLibActivity extends Activity {
         		  WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         
+        Global.Context = this;
+        
         // Initialize to default component factory if child class does not specify
         if (_componentFactory == null)
         	_componentFactory = new ComponentFactory();
-        
+
         // Create and initialize components
         Logger.init();
         AllocationGuard.sGuardActive = false;
@@ -44,7 +46,6 @@ public class LobLibActivity extends Activity {
         LobLibRenderer renderer = _componentFactory.CreateRenderer();
         view.setRenderer(renderer);
         
-        Global.Context = this;
         Global.View = view;
         Global.Game = game;
         Global.Renderer = renderer;
