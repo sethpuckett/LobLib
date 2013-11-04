@@ -57,6 +57,7 @@ public class LobLibActivity extends Activity {
         
         game.init(_componentFactory);
         Global.Camera.init();
+        
         Runtime.getRuntime().gc();
     }
     

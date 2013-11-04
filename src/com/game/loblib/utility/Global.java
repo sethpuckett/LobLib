@@ -6,10 +6,9 @@ import com.game.loblib.LobLibGame;
 import com.game.loblib.LobLibView;
 import com.game.loblib.graphics.Camera;
 import com.game.loblib.graphics.LobLibRenderer;
-import com.game.loblib.utility.CommonData;
-import com.game.loblib.utility.GameSettings;
 import com.game.loblib.graphics.SpriteHelper;
 import com.game.loblib.sound.MusicHelper;
+import com.game.loblib.text.GLText;
 
 // making these globally accessible so I don't have to pass them around everywhere
 public class Global {

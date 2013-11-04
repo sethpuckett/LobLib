@@ -8,8 +8,10 @@ public class SpriteManager {
 	protected static final StringBuffer _tag = new StringBuffer("SpriteManager");
 	protected SpritePool _spritePool;
 	protected DrawCallPool _drawCallPool;
+	protected TextDrawCallPool _textDrawCallPool;
 	protected FixedSizeArray<Sprite> _allocatedSprites;
 	protected FixedSizeArray<DrawCall>[] _spriteQueues;
+	protected FixedSizeArray<TextDrawCall>[] _textQueues;
 	protected SpriteSet[] _spriteSets;
 	protected int _spriteQueueIndex;
 	protected float _updateTime = 0;
@@ -17,11 +19,15 @@ public class SpriteManager {
 	@SuppressWarnings("unchecked")
 	public SpriteManager( ) {
 		_spriteQueues = new FixedSizeArray[2];
+		_textQueues = new FixedSizeArray[2];
 		_spriteQueues[0] = new FixedSizeArray<DrawCall>(1024);
 		_spriteQueues[1] = new FixedSizeArray<DrawCall>(1024);
+		_textQueues[0] = new FixedSizeArray<TextDrawCall>(32);
+		_textQueues[1] = new FixedSizeArray<TextDrawCall>(32);
 		_allocatedSprites = new FixedSizeArray<Sprite>(2048);
 		_spritePool = new SpritePool(2048);
 		_drawCallPool = new DrawCallPool(2048);
+		_textDrawCallPool = new TextDrawCallPool(32);
 		_spriteSets = new SpriteSet[2];
 		_spriteSets[0] = new SpriteSet();
 		_spriteSets[1] = new SpriteSet();
@@ -60,15 +66,28 @@ public class SpriteManager {
 			}
 		}
 	}
+	
+	public void drawText(String text, float x, float y) {
+		// lock the current sprite queue to prevent conflicts
+		synchronized (_textQueues[_spriteQueueIndex]) {
+			// make a draw call with the current sprite and add it to the sprite queue
+			_textQueues[_spriteQueueIndex].add(makeTextDrawCall(text, x, y));
+		}
+	}
 
 	// Sends the current sprite queue/set to the renderer and prepares the next queue/set for the next frame
 	public void frameComplete() {
 		Global.Renderer.setDrawQueue(_spriteQueues[_spriteQueueIndex], _spriteSets[_spriteQueueIndex]);
+		Global.Renderer.setTextQueue(_textQueues[_spriteQueueIndex]);
 		_spriteQueueIndex = ~_spriteQueueIndex & 1;
 		int count = _spriteQueues[_spriteQueueIndex].getCount();
 		for (int i = 0; i < count; i++)
 			_drawCallPool.release(_spriteQueues[_spriteQueueIndex].get(i));
+		count = _textQueues[_spriteQueueIndex].getCount();
+		for (int i = 0; i < count; i++)
+			_textDrawCallPool.release(_textQueues[_spriteQueueIndex].get(i));
 		_spriteQueues[_spriteQueueIndex].clear();
+		_textQueues[_spriteQueueIndex].clear();
 		_spriteSets[_spriteQueueIndex].clear();
 	}
 
@@ -127,6 +146,15 @@ public class SpriteManager {
 		dc.TextureId = sprite.Texture.TextureId;
 		dc.Width = sprite.Area.Size.X;
 		dc.UseCamera = sprite.UseCamera;
+		return dc;
+	}
+	
+	// Makes a draw call using current sprite properties
+	protected TextDrawCall makeTextDrawCall(String text, float x, float y) {
+		TextDrawCall dc = _textDrawCallPool.allocate();
+		dc.Text = text;
+		dc.PositionX = x;
+		dc.PositionY = y;
 		return dc;
 	}
 }

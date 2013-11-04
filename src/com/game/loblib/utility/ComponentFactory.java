@@ -20,6 +20,10 @@ import com.game.loblib.utility.area.VertexManager;
 
 public class ComponentFactory {
 	
+	public Global CreateGlobal() {
+		return new Global();
+	}
+	
 	public LobLibGame CreateGame() {
 		return new LobLibGame();
 	}

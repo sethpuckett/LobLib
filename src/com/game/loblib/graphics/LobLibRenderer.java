@@ -15,6 +15,7 @@ import android.opengl.GLSurfaceView;
 import android.opengl.GLUtils;
 
 import com.game.loblib.messaging.MessageType;
+import com.game.loblib.text.GLText;
 import com.game.loblib.utility.Global;
 import com.game.loblib.utility.Logger;
 import com.game.loblib.utility.Manager;
@@ -26,6 +27,8 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 	public float Width;
 	public float Height;
 	
+	protected GLText _glText;
+	
 	protected StringBuffer _tag = new StringBuffer("LobLibRenderer");
 	protected GL10 _gl;
 	protected boolean _screenCreated;
@@ -34,6 +37,7 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 	protected final Vertex _screenSize = new Vertex();
 	
 	protected FixedSizeArray<DrawCall> _drawQueue = null;
+	protected FixedSizeArray<TextDrawCall> _textDrawQueue = null;
 	protected SpriteSet _spriteSet = null;
 	protected Object _drawLock = new Object();
 	protected boolean _drawQueueSwapped = false;
@@ -101,6 +105,16 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 									call.Height);
 						}
 					}
+					
+					gl.glLoadIdentity();
+					gl.glBlendFunc( GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA );
+					
+					_glText.begin();
+					for (int i = 0; i < _textDrawQueue.getCount(); i++) {
+						TextDrawCall call = _textDrawQueue.get(i);
+						_glText.draw(call.Text, call.PositionX, call.PositionY);
+					}
+					_glText.end();
 				}
 			}
 		}
@@ -143,6 +157,10 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 		
 		IntBuffer size = IntBuffer.allocate(1);
 		gl.glGetIntegerv(GL10.GL_MAX_TEXTURE_SIZE, size);
+		
+		_glText = new GLText(_gl, Global.Context.getAssets());
+		// TODO: put this somewhere else
+		_glText.load("CALIBRI.TTF", 64, 6, 6 );
 		
 		_screenCreated = true;
 		Manager.Message.sendMessage(MessageType.SURFACE_CREATED);
@@ -234,6 +252,13 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 			_drawQueue = queue;
 			_spriteSet = set;
 			_drawQueueSwapped = true;
+			_drawLock.notify();
+		}
+	}
+	
+	public void setTextQueue(FixedSizeArray<TextDrawCall> queue) {
+		synchronized (_drawLock) {
+			_textDrawQueue = queue;
 			_drawLock.notify();
 		}
 	}
