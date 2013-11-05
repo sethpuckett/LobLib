@@ -160,7 +160,7 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 		
 		_glText = new GLText(_gl, Global.Context.getAssets());
 		// TODO: put this somewhere else
-		_glText.load("CALIBRI.TTF", 64, 6, 6 );
+		_glText.load("CALIBRI.TTF", 48, 6, 6 );
 		
 		_screenCreated = true;
 		Manager.Message.sendMessage(MessageType.SURFACE_CREATED);
