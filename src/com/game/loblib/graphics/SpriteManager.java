@@ -67,11 +67,11 @@ public class SpriteManager {
 		}
 	}
 	
-	public void drawText(String text, float x, float y) {
+	public void drawText(String text, float x, float y, boolean centerX, boolean centerY) {
 		// lock the current sprite queue to prevent conflicts
 		synchronized (_textQueues[_spriteQueueIndex]) {
 			// make a draw call with the current sprite and add it to the sprite queue
-			_textQueues[_spriteQueueIndex].add(makeTextDrawCall(text, x, y));
+			_textQueues[_spriteQueueIndex].add(makeTextDrawCall(text, x, y, centerX, centerY));
 		}
 	}
 
@@ -150,11 +150,13 @@ public class SpriteManager {
 	}
 	
 	// Makes a draw call using current sprite properties
-	protected TextDrawCall makeTextDrawCall(String text, float x, float y) {
+	protected TextDrawCall makeTextDrawCall(String text, float x, float y, boolean centerX, boolean centerY) {
 		TextDrawCall dc = _textDrawCallPool.allocate();
 		dc.Text = text;
 		dc.PositionX = x;
 		dc.PositionY = y;
+		dc.CenterX = centerX;
+		dc.CenterY = centerY;
 		return dc;
 	}
 }

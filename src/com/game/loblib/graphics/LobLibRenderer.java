@@ -112,7 +112,14 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 					_glText.begin();
 					for (int i = 0; i < _textDrawQueue.getCount(); i++) {
 						TextDrawCall call = _textDrawQueue.get(i);
-						_glText.draw(call.Text, call.PositionX, call.PositionY);
+						if (call.CenterX && call.CenterY)
+							_glText.drawC(call.Text, call.PositionX, call.PositionY);
+						else if (call.CenterX)
+							_glText.drawCX(call.Text, call.PositionX, call.PositionY);
+						else if (call.CenterX)
+							_glText.drawCY(call.Text, call.PositionX, call.PositionY);
+						else
+							_glText.draw(call.Text, call.PositionX, call.PositionY);
 					}
 					_glText.end();
 				}
