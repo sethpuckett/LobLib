@@ -43,6 +43,11 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 	protected boolean _drawQueueSwapped = false;
 	protected boolean _paused;
 	
+	protected float _textR;
+	protected float _textG;
+	protected float _textB;
+	protected float _textA;
+	
 	protected boolean _requestCallback = false;
 	
 	public LobLibRenderer() {
@@ -109,7 +114,7 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 					gl.glLoadIdentity();
 					gl.glBlendFunc( GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA );
 					
-					_glText.begin();
+					_glText.begin(_textR, _textG, _textB, _textA);
 					for (int i = 0; i < _textDrawQueue.getCount(); i++) {
 						TextDrawCall call = _textDrawQueue.get(i);
 						if (call.CenterX && call.CenterY)
@@ -177,6 +182,13 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 		return _screenCreated;
 	}
 
+	public void setTextProperties(float red, float green, float blue, float alpha) {
+		_textR = red;
+		_textG = green;
+		_textB = blue;
+		_textA = alpha;
+	}
+	
 	// bind texture to sprite based on resourceId
 	public void bindTexture(Texture tex) {
 		if (_gl == null) {
