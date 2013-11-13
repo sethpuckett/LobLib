@@ -270,6 +270,30 @@ public class GLText {
          x += ( charWidths[c] + spaceX ) * scaleX;    // Advance X Position by Scaled Character Width
       }
    }
+   
+   //--Draw Text--//
+   // D: draw text at the specified x,y position
+   // A: text - the string to draw
+   //    x, y - the x,y position to draw text at (bottom left of text; including descent)
+   // R: [none]
+   public void draw(String text, float startX, float startY, float maxWidth)  {
+      float chrHeight = cellHeight * scaleY;          // Calculate Scaled Character Height
+      float chrWidth = cellWidth * scaleX;            // Calculate Scaled Character Width
+      int len = text.length();                        // Get String Length
+      float x = startX + ( chrWidth / 2.0f ) - ( fontPadX * scaleX );  // Adjust Start X
+      float y = startY + ( chrHeight / 2.0f ) - ( fontPadY * scaleY );  // Adjust Start Y
+      for ( int i = 0; i < len; i++ )  {              // FOR Each Character in String
+         int c = (int)text.charAt( i ) - CHAR_START;  // Calculate Character Index (Offset by First Char in Font)
+         if ( c < 0 || c >= CHAR_CNT )                // IF Character Not In Font
+            c = CHAR_UNKNOWN;                         // Set to Unknown Character Index
+         batch.drawSprite( x, y, chrWidth, chrHeight, charRgn[c] );  // Draw the Character
+         x += ( charWidths[c] + spaceX ) * scaleX;    // Advance X Position by Scaled Character Width
+         if (x >= startX + maxWidth) {
+        	 x = startX + ( chrWidth / 2.0f ) - ( fontPadX * scaleX ); // reset X
+        	 y -= chrHeight - (fontPadY * scaleY); // increment Y
+         }
+      }
+   }
 
    //--Draw Text Centered--//
    // D: draw text CENTERED at the specified x,y position
@@ -290,6 +314,26 @@ public class GLText {
       draw( text, x, y - ( getCharHeight() / 2.0f ) );  // Draw Text Centered (Y-Axis Only)
    }
 
+   //--Draw Text Centered--//
+   // D: draw text CENTERED at the specified x,y position
+   // A: text - the string to draw
+   //    x, y - the x,y position to draw text at (bottom left of text)
+   // R: the total width of the text that was drawn
+   public float drawC(String text, float x, float y, float maxWidth )  {
+      float len = getLength( text );                  // Get Text Length
+      draw( text, x - ( len / 2.0f ), y - ( getCharHeight() / 2.0f), maxWidth );  // Draw Text Centered
+      return len;                                     // Return Length
+   }
+   public float drawCX(String text, float x, float y, float maxWidth )  {
+      float len = getLength( text );                  // Get Text Length
+      draw( text, x - ( len / 2.0f ), y, maxWidth );            // Draw Text Centered (X-Axis Only)
+      return len;                                     // Return Length
+   }
+   public void drawCY(String text, float x, float y, float maxWidth)  {
+      draw( text, x, y - ( getCharHeight() / 2.0f ), maxWidth );  // Draw Text Centered (Y-Axis Only)
+   }
+
+   
    //--Set Scale--//
    // D: set the scaling to use for the font
    // A: scale - uniform scale for both x and y axis scaling
