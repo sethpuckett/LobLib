@@ -43,11 +43,6 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 	protected boolean _drawQueueSwapped = false;
 	protected boolean _paused;
 	
-	protected float _textR;
-	protected float _textG;
-	protected float _textB;
-	protected float _textA;
-	
 	protected boolean _requestCallback = false;
 	
 	public LobLibRenderer() {
@@ -114,19 +109,38 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 					gl.glLoadIdentity();
 					gl.glBlendFunc( GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA );
 					
-					_glText.begin(_textR, _textG, _textB, _textA);
 					for (int i = 0; i < _textDrawQueue.getCount(); i++) {
 						TextDrawCall call = _textDrawQueue.get(i);
-						if (call.CenterX && call.CenterY)
-							_glText.drawC(call.Text, call.PositionX, call.PositionY, 1000);
-						else if (call.CenterX)
-							_glText.drawCX(call.Text, call.PositionX, call.PositionY, 1000);
-						else if (call.CenterX)
-							_glText.drawCY(call.Text, call.PositionX, call.PositionY, 1000);
-						else
-							_glText.draw(call.Text, call.PositionX, call.PositionY, 1000);
+						
+						// Have to begin & end for each text entry for now because text can be different colors
+						// TODO: Maybe batch by color to save begin/end calls
+						_glText.begin(call.Red, call.Green, call.Blue, call.Alpha);
+						
+						// If width is 0 draw without width
+						if (call.Width > 0) {
+							if (call.CenterX && call.CenterY)
+								_glText.drawC(call.Text, call.PositionX, call.PositionY, call.Width);
+							else if (call.CenterX)
+								_glText.drawCX(call.Text, call.PositionX, call.PositionY, call.Width);
+							else if (call.CenterX)
+								_glText.drawCY(call.Text, call.PositionX, call.PositionY, call.Width);
+							else
+								_glText.draw(call.Text, call.PositionX, call.PositionY, call.Width);
+						}
+						else {
+							if (call.CenterX && call.CenterY)
+								_glText.drawC(call.Text, call.PositionX, call.PositionY);
+							else if (call.CenterX)
+								_glText.drawCX(call.Text, call.PositionX, call.PositionY);
+							else if (call.CenterX)
+								_glText.drawCY(call.Text, call.PositionX, call.PositionY);
+							else
+								_glText.draw(call.Text, call.PositionX, call.PositionY);
+						}
+						
+						_glText.end();
 					}
-					_glText.end();
+					
 				}
 			}
 		}
@@ -180,13 +194,6 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 
 	public boolean isSurfaceCreated() {
 		return _screenCreated;
-	}
-
-	public void setTextProperties(float red, float green, float blue, float alpha) {
-		_textR = red;
-		_textG = green;
-		_textB = blue;
-		_textA = alpha;
 	}
 	
 	// bind texture to sprite based on resourceId

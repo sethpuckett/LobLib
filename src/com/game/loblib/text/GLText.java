@@ -18,8 +18,11 @@ import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.opengl.GLUtils;
 
-public class GLText {
+import com.game.loblib.utility.Logger;
 
+public class GLText {
+	protected final static StringBuffer _tag = new StringBuffer("GLText");
+	
    //--Constants--//
    public final static int CHAR_START = 32;           // First Character (ASCII Code)
    public final static int CHAR_END = 126;            // Last Character (ASCII Code)
@@ -277,22 +280,58 @@ public class GLText {
    //    x, y - the x,y position to draw text at (bottom left of text; including descent)
    // R: [none]
    public void draw(String text, float startX, float startY, float maxWidth)  {
-      float chrHeight = cellHeight * scaleY;          // Calculate Scaled Character Height
-      float chrWidth = cellWidth * scaleX;            // Calculate Scaled Character Width
-      int len = text.length();                        // Get String Length
-      float x = startX + ( chrWidth / 2.0f ) - ( fontPadX * scaleX );  // Adjust Start X
-      float y = startY + ( chrHeight / 2.0f ) - ( fontPadY * scaleY );  // Adjust Start Y
-      for ( int i = 0; i < len; i++ )  {              // FOR Each Character in String
-         int c = (int)text.charAt( i ) - CHAR_START;  // Calculate Character Index (Offset by First Char in Font)
-         if ( c < 0 || c >= CHAR_CNT )                // IF Character Not In Font
-            c = CHAR_UNKNOWN;                         // Set to Unknown Character Index
-         batch.drawSprite( x, y, chrWidth, chrHeight, charRgn[c] );  // Draw the Character
-         x += ( charWidths[c] + spaceX ) * scaleX;    // Advance X Position by Scaled Character Width
-         if (x >= startX + maxWidth) {
-        	 x = startX + ( chrWidth / 2.0f ) - ( fontPadX * scaleX ); // reset X
-        	 y -= chrHeight - (fontPadY * scaleY); // increment Y
-         }
-      }
+	   float chrHeight = cellHeight * scaleY;          // Calculate Scaled Character Height
+	   float chrWidth = cellWidth * scaleX;            // Calculate Scaled Character Width
+	   int len = text.length();                        // Get String Length
+	   float x = startX + ( chrWidth / 2.0f ) - ( fontPadX * scaleX );  // Adjust Start X
+	   float y = startY + ( chrHeight / 2.0f ) - ( fontPadY * scaleY );  // Adjust Start Y
+	   float lenToSpace = -1f; // Stores the distance until the next whitespace character; used for linebreak calculation
+	   for ( int i = 0; i < len; i++ )  {              // FOR Each Character in String
+		   char curChar = text.charAt(i);
+		   if (lenToSpace == -1 || curChar == ' ') {
+			   lenToSpace = 0;
+			   // look ahead for space character and set lenToSpace accordingly
+			   for (int j = i + 1; j < len; j++) {
+				   char nextChar = text.charAt( j );
+				   if (nextChar == ' ')
+					   break;
+				   lenToSpace++;
+				   
+				   // if there are no more spaces in the text set to 0
+				   if (j == len)
+					   lenToSpace = 0;
+			   }
+		   }
+		   
+		   int charIndex = (int)text.charAt( i ) - CHAR_START;  // Calculate Character Index (Offset by First Char in Font)
+		   if ( charIndex < 0 || charIndex >= CHAR_CNT )                // IF Character Not In Font
+			   charIndex = CHAR_UNKNOWN;                         // Set to Unknown Character Index
+		   
+		   batch.drawSprite( x, y, chrWidth, chrHeight, charRgn[charIndex] );  // Draw the Character
+		   x += ( charWidths[charIndex] + spaceX ) * scaleX;    // Advance X Position by Scaled Character Width
+		   
+		   float pixWidthToSpace = 0; // determine the pixel width to next space character
+		   for (int j = i + 1; j < i + lenToSpace; j++)
+			   pixWidthToSpace += ((charWidths[j] + spaceX) * scaleX);
+		   
+		   if ((curChar == ' ' && x + pixWidthToSpace >= startX + maxWidth) // if next word will extend beyond max length
+			   || (x >= startX + maxWidth)) { // or if the text has already gone past max length
+			   x = startX + ( chrWidth / 2.0f ) - ( fontPadX * scaleX ); // reset X
+			   y -= chrHeight - (fontPadY * scaleY); // increment Y
+			   lenToSpace = -1;
+			   
+			   // skip space character right after line break
+			   char nextChar = text.charAt(i + 1);
+			   if (nextChar == ' ')
+				   i++;
+		   }
+		   else
+			   lenToSpace--; // subtract one for the character just drawn
+		   
+		   // if space is reached reset lenToSpace to calculate next length
+		   //if (curChar == ' ')
+			//   lenToSpace = -1;
+	   }
    }
 
    //--Draw Text Centered--//
@@ -321,11 +360,13 @@ public class GLText {
    // R: the total width of the text that was drawn
    public float drawC(String text, float x, float y, float maxWidth )  {
       float len = getLength( text );                  // Get Text Length
+      len = Math.min(len, maxWidth);					// if text will wrap set length to maxWidth
       draw( text, x - ( len / 2.0f ), y - ( getCharHeight() / 2.0f), maxWidth );  // Draw Text Centered
       return len;                                     // Return Length
    }
    public float drawCX(String text, float x, float y, float maxWidth )  {
       float len = getLength( text );                  // Get Text Length
+      len = Math.min(len, maxWidth);					// if text will wrap set length to maxWidth
       draw( text, x - ( len / 2.0f ), y, maxWidth );            // Draw Text Centered (X-Axis Only)
       return len;                                     // Return Length
    }
@@ -383,7 +424,11 @@ public class GLText {
       int strLen = text.length();                     // Get String Length (Characters)
       for ( int i = 0; i < strLen; i++ )  {           // For Each Character in String (Except Last
          int c = (int)text.charAt( i ) - CHAR_START;  // Calculate Character Index (Offset by First Char in Font)
-         len += ( charWidths[c] * scaleX );           // Add Scaled Character Width to Total Length
+         try {
+        	 len += ( charWidths[c] * scaleX );           // Add Scaled Character Width to Total Length
+         } catch (ArrayIndexOutOfBoundsException e) {
+        	 Logger.e(_tag, "Bad text: " + text);
+         }
       }
       len += ( strLen > 1 ? ( ( strLen - 1 ) * spaceX ) * scaleX : 0 );  // Add Space Length
       return len;                                     // Return Total Length

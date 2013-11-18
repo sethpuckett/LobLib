@@ -6,4 +6,9 @@ public class TextDrawCall {
 	public float PositionY;
 	public boolean CenterX;
 	public boolean CenterY;
+	public float Red;
+	public float Green;
+	public float Blue;
+	public float Alpha;
+	public float Width;
 }
