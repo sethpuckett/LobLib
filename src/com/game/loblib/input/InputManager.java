@@ -107,7 +107,8 @@ public class InputManager {
 					_action == MotionType.ACTION_CANCEL)
 				{
 					if (_action == MotionType.ACTION_CANCEL) {
-						_activeSubscribers.remove(subscriberIndex);
+						if (subscriberIndex > 0)
+							_activeSubscribers.remove(subscriberIndex);
 						data.getListener().onTouchAbort(gEvent);
 					}
 					else {
