@@ -8,7 +8,7 @@ import com.game.loblib.graphics.Camera;
 import com.game.loblib.graphics.LobLibRenderer;
 import com.game.loblib.graphics.SpriteHelper;
 import com.game.loblib.sound.MusicHelper;
-import com.game.loblib.text.GLText;
+import com.game.loblib.text.TextManager;
 
 // making these globally accessible so I don't have to pass them around everywhere
 public class Global {
@@ -21,4 +21,5 @@ public class Global {
 	public static CommonData Data;
 	public static SpriteHelper SpriteHelper;
 	public static MusicHelper MusicHelper;
+	public static TextManager TextManager;
 }

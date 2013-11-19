@@ -14,6 +14,7 @@ import com.game.loblib.messaging.MessageManager;
 import com.game.loblib.screen.ScreenManager;
 import com.game.loblib.sound.MusicHelper;
 import com.game.loblib.sound.SoundManager;
+import com.game.loblib.text.TextManager;
 import com.game.loblib.utility.area.CircleManager;
 import com.game.loblib.utility.area.RectangleManager;
 import com.game.loblib.utility.area.VertexManager;
@@ -98,5 +99,9 @@ public class ComponentFactory {
 	
 	public TriggerManager CreateTriggerManager() {
 		return new TriggerManager();
+	}
+	
+	public TextManager CreateTextManager() {
+		return new TextManager();
 	}
 }

@@ -16,6 +16,7 @@ import android.opengl.GLUtils;
 
 import com.game.loblib.messaging.MessageType;
 import com.game.loblib.text.GLText;
+import com.game.loblib.text.TextData;
 import com.game.loblib.utility.Global;
 import com.game.loblib.utility.Logger;
 import com.game.loblib.utility.Manager;
@@ -26,9 +27,7 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 	
 	public float Width;
 	public float Height;
-	
-	protected GLText _glText;
-	
+
 	protected StringBuffer _tag = new StringBuffer("LobLibRenderer");
 	protected GL10 _gl;
 	protected boolean _screenCreated;
@@ -114,31 +113,32 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 						
 						// Have to begin & end for each text entry for now because text can be different colors
 						// TODO: Maybe batch by color to save begin/end calls
-						_glText.begin(call.Red, call.Green, call.Blue, call.Alpha);
+						TextData textData = Global.TextManager.getText(call.TextName);
+						textData.getText().begin(call.Red, call.Green, call.Blue, call.Alpha);
 						
 						// If width is 0 draw without width
 						if (call.Width > 0) {
 							if (call.CenterX && call.CenterY)
-								_glText.drawC(call.Text, call.PositionX, call.PositionY, call.Width);
+								textData.getText().drawC(call.Text, call.PositionX, call.PositionY, call.Width);
 							else if (call.CenterX)
-								_glText.drawCX(call.Text, call.PositionX, call.PositionY, call.Width);
+								textData.getText().drawCX(call.Text, call.PositionX, call.PositionY, call.Width);
 							else if (call.CenterX)
-								_glText.drawCY(call.Text, call.PositionX, call.PositionY, call.Width);
+								textData.getText().drawCY(call.Text, call.PositionX, call.PositionY, call.Width);
 							else
-								_glText.draw(call.Text, call.PositionX, call.PositionY, call.Width);
+								textData.getText().draw(call.Text, call.PositionX, call.PositionY, call.Width);
 						}
 						else {
 							if (call.CenterX && call.CenterY)
-								_glText.drawC(call.Text, call.PositionX, call.PositionY);
+								textData.getText().drawC(call.Text, call.PositionX, call.PositionY);
 							else if (call.CenterX)
-								_glText.drawCX(call.Text, call.PositionX, call.PositionY);
+								textData.getText().drawCX(call.Text, call.PositionX, call.PositionY);
 							else if (call.CenterX)
-								_glText.drawCY(call.Text, call.PositionX, call.PositionY);
+								textData.getText().drawCY(call.Text, call.PositionX, call.PositionY);
 							else
-								_glText.draw(call.Text, call.PositionX, call.PositionY);
+								textData.getText().draw(call.Text, call.PositionX, call.PositionY);
 						}
 						
-						_glText.end();
+						textData.getText().end();
 					}
 					
 				}
@@ -184,16 +184,18 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 		IntBuffer size = IntBuffer.allocate(1);
 		gl.glGetIntegerv(GL10.GL_MAX_TEXTURE_SIZE, size);
 		
-		_glText = new GLText(_gl, Global.Context.getAssets());
-		// TODO: put this somewhere else
-		_glText.load("CALIBRI.TTF", 48, 6, 6 );
-		
 		_screenCreated = true;
 		Manager.Message.sendMessage(MessageType.SURFACE_CREATED);
 	}
 
 	public boolean isSurfaceCreated() {
 		return _screenCreated;
+	}
+	
+	public GLText loadText(String assetFile, int size, int padX, int padY) {
+		GLText text = new GLText(_gl, Global.Context.getAssets());
+		text.load(assetFile, size, padX, padY);
+		return text;
 	}
 	
 	// bind texture to sprite based on resourceId
