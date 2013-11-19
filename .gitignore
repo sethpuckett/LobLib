@@ -25,7 +25,7 @@ local.properties
 
 # PDT-specific
 .buildpath
-buildconfig.java
+BuildConfig.java
 jarlist.cache
 loblib.jar
 
