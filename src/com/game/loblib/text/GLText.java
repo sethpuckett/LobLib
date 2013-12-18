@@ -321,9 +321,11 @@ public class GLText {
 			   lenToSpace = -1;
 			   
 			   // skip space character right after line break
-			   char nextChar = text.charAt(i + 1);
-			   if (nextChar == ' ')
-				   i++;
+			   if (i != text.length() - 1) {
+				   char nextChar = text.charAt(i + 1);
+				   if (nextChar == ' ')
+					   i++; 
+			   }
 		   }
 		   else
 			   lenToSpace--; // subtract one for the character just drawn
