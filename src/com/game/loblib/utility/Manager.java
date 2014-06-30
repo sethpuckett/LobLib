@@ -27,7 +27,7 @@ public class Manager {
 	public static SoundManager Sound;
 	public static TriggerManager Trigger;
 	
-	public static void init(ComponentFactory factory) {
+	public void init(ComponentFactory factory) {
 		Entity = factory.CreateGameEntityManager();
 		Sprite = factory.CreateSpriteManager();
 		Input = factory.CreateInputManager();
@@ -45,7 +45,7 @@ public class Manager {
 		Trigger.init();
 	}
 	
-	public static void flush() {
+	public void flush() {
 		Entity.flush();
 		Sprite.flush();
 		Input.flush();

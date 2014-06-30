@@ -124,8 +124,17 @@ public class Camera implements IMessageHandler {
 		float oldX = center.X;
 		float oldY = center.Y;
 		
-		center.X = MathHelper.clamp((CameraArea.Size.X / 2f) + CoveredArea.Position.X, CoveredArea.Position.X + CoveredArea.Size.X - (CameraArea.Size.X / 2f), center.X);
-		center.Y = MathHelper.clamp((CameraArea.Size.Y / 2f) + CoveredArea.Position.Y, CoveredArea.Position.Y + CoveredArea.Size.Y - (CameraArea.Size.Y / 2f), center.Y);
+		float min = (CameraArea.Size.X / 2f) + CoveredArea.Position.X;
+		float max = CoveredArea.Position.X + CoveredArea.Size.X - (CameraArea.Size.X / 2f);
+		if (max < min)
+			max = min;
+		center.X = MathHelper.clamp(min, max, center.X);
+		
+		min = (CameraArea.Size.Y / 2f) + CoveredArea.Position.Y;
+		max = CoveredArea.Position.Y + CoveredArea.Size.Y - (CameraArea.Size.Y / 2f);
+		if (max < min)
+			max = min;
+		center.Y = MathHelper.clamp(min, max, center.Y);
 		
 		if (oldX != center.X)
 			xchange = true;

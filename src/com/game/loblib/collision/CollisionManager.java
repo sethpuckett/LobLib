@@ -1,7 +1,5 @@
 package com.game.loblib.collision;
 
-import com.game.loblib.messaging.IMessageHandler;
-import com.game.loblib.messaging.Message;
 import com.game.loblib.messaging.MessageType;
 import com.game.loblib.utility.Manager;
 import com.game.loblib.utility.android.FixedSizeArray;
@@ -9,7 +7,7 @@ import com.game.loblib.utility.area.Area;
 import com.game.loblib.utility.area.IArea;
 import com.game.loblib.utility.area.Rectangle;
 
-public class CollisionManager implements IMessageHandler {
+public class CollisionManager  {
 	protected final StringBuffer _tag = new StringBuffer("CollisionManager");
 	
 	// Partitions are used speed up collision detection by grouping nearby entities
@@ -82,11 +80,6 @@ public class CollisionManager implements IMessageHandler {
 				_senderGrid[i].remove(sender, false);
 			}
 		}
-	}
-
-	@Override
-	public void handleMessage(Message message) {
-
 	}
 
 	// Removes all collision senders from all partitions

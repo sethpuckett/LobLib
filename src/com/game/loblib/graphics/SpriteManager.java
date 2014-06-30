@@ -25,8 +25,8 @@ public class SpriteManager {
 		_textQueues[0] = new FixedSizeArray<TextDrawCall>(32);
 		_textQueues[1] = new FixedSizeArray<TextDrawCall>(32);
 		_allocatedSprites = new FixedSizeArray<Sprite>(2048);
-		_spritePool = new SpritePool(2048);
-		_drawCallPool = new DrawCallPool(2048);
+		_spritePool = new SpritePool(4096);
+		_drawCallPool = new DrawCallPool(4096);
 		_textDrawCallPool = new TextDrawCallPool(32);
 		_spriteSets = new SpriteSet[2];
 		_spriteSets[0] = new SpriteSet();

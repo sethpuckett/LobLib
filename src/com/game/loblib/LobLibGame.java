@@ -13,13 +13,17 @@ public class LobLibGame {
 	protected boolean _running;
 	protected Thread _thread;
 	protected LobLibGameThread _gameThread;
+	protected Manager _manager;
 
 	public LobLibGame() {
 		_gameThread = new LobLibGameThread();
 	}
 	
 	public void init(ComponentFactory factory) {
-		Manager.init(factory);
+		if (_manager == null)
+			_manager = new Manager();
+		
+		_manager.init(factory);
 		Global.View.init();
 		
 		Manager.Message.sendMessage(MessageType.GAME_INIT);

@@ -7,7 +7,7 @@ public class SpriteSet {
 	protected static StringBuffer _tag = new StringBuffer("SpriteSet");
 	
 	protected final int _layerCount = 12;
-	protected final int _spritesPerLayer = 1024;
+	protected final int _spritesPerLayer = 4096;
 	
 	protected int[][] _layers = new int[_layerCount][];
 	protected int[] _layerIndexCount = new int[_layerCount];

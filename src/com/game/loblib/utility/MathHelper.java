@@ -1,6 +1,7 @@
 package com.game.loblib.utility;
 
 import java.security.InvalidParameterException;
+import java.util.Random;
 
 import com.game.loblib.utility.area.Rectangle;
 import com.game.loblib.utility.area.Vertex;
@@ -80,4 +81,26 @@ public class MathHelper {
 		return (float)angle;
 	}
  
+	public static <T> T GetRandomValueFromSet(Random rand, T... set) {
+		if (set == null || set.length == 0)
+			Logger.e(_tag, "Cannot select random value; set is empty");
+		
+		int index = rand.nextInt(set.length);
+		return set[index];
+	}
+	
+	public static void ShuffleArray(int[] array, Random rand) {
+	    int index;
+	    Random random = new Random();
+	    for (int i = array.length - 1; i > 0; i--)
+	    {
+	        index = random.nextInt(i + 1);
+	        if (index != i)
+	        {
+	            array[index] ^= array[i];
+	            array[i] ^= array[index];
+	            array[index] ^= array[i];
+	        }
+	    }
+	}
 }
