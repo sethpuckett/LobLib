@@ -55,6 +55,7 @@ public class LobLibActivity extends Activity {
         Global.SpriteHelper =_componentFactory.CreateSpriteHelper();
         Global.MusicHelper = _componentFactory.CreateMusicHelper();
         Global.TextManager = _componentFactory.CreateTextManager();
+        Global.ScreenFactory = _componentFactory.CreateScreenFactory();
         
         game.init(_componentFactory);
         Global.Camera.init();

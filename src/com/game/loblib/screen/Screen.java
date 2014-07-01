@@ -15,7 +15,7 @@ public abstract class Screen implements IMessageHandler {
 	
 	protected FixedSizeArray<GameEntity> _entities = new FixedSizeArray<GameEntity>(2048);
 	protected int _type = ScreenType.UNKNOWN;
-	protected int _code = ScreenCode.UNKNOWN;
+	protected ScreenData _screenData = new ScreenData();
 	// Music that plays on this screen
 	protected int _screenMusic = Sound.UNKNOWN;
 	// How to handle back button presses on this screen
@@ -27,11 +27,11 @@ public abstract class Screen implements IMessageHandler {
 		return _type;
 	}
 	
-	public int getCode() {
-		return _code;
+	public ScreenData getScreenData() {
+		return _screenData;
 	}
 	
-	public void update(float updateRatio) {
+	public void update(float updateRatio, int screenUpdateType) {
 		// no default behavior
 	}
 	
@@ -63,7 +63,7 @@ public abstract class Screen implements IMessageHandler {
 	
 	// subscribes to messages, adds entities to entity manager, and enables all behaviors
 	public final void init() {
-		_code = ScreenCode.CONTINUE;
+		_screenData.setCode(ScreenCode.CONTINUE);
 		Manager.Message.subscribe(this, MessageType.SOUND_ENABLED);
 		if (_screenMusic != Sound.UNKNOWN)
 			Manager.Sound.playMusic(_screenMusic);
@@ -85,7 +85,7 @@ public abstract class Screen implements IMessageHandler {
 	}
 	
 	public final void unpause() {
-		_code = ScreenCode.CONTINUE;
+		_screenData.setCode(ScreenCode.CONTINUE);
 		Manager.Message.subscribe(this, MessageType.SOUND_ENABLED);
 		if (_screenMusic != Sound.UNKNOWN)
 			Manager.Sound.playMusic(_screenMusic);

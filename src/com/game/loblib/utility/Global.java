@@ -7,6 +7,7 @@ import com.game.loblib.LobLibView;
 import com.game.loblib.graphics.Camera;
 import com.game.loblib.graphics.LobLibRenderer;
 import com.game.loblib.graphics.SpriteHelper;
+import com.game.loblib.screen.ScreenFactory;
 import com.game.loblib.sound.MusicHelper;
 import com.game.loblib.text.TextManager;
 
@@ -22,4 +23,5 @@ public class Global {
 	public static SpriteHelper SpriteHelper;
 	public static MusicHelper MusicHelper;
 	public static TextManager TextManager;
+	public static ScreenFactory ScreenFactory;
 }

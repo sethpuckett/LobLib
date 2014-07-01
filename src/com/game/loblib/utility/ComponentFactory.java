@@ -11,6 +11,7 @@ import com.game.loblib.graphics.SpriteHelper;
 import com.game.loblib.graphics.SpriteManager;
 import com.game.loblib.input.InputManager;
 import com.game.loblib.messaging.MessageManager;
+import com.game.loblib.screen.ScreenFactory;
 import com.game.loblib.screen.ScreenManager;
 import com.game.loblib.sound.MusicHelper;
 import com.game.loblib.sound.SoundManager;
@@ -103,5 +104,9 @@ public class ComponentFactory {
 	
 	public TextManager CreateTextManager() {
 		return new TextManager();
+	}
+	
+	public ScreenFactory CreateScreenFactory() {
+		return new ScreenFactory();
 	}
 }
