@@ -33,19 +33,20 @@ public class ScreenManager implements IMessageHandler {
 				_screenStack.get(i).update(updateRatio, ScreenUpdateType.ACTIVE);
 				int code = _screenStack.get(i).getScreenData().getCode();
 				if (code != ScreenCode.CONTINUE)
-					handleCode(code);
+					handleScreenData(_screenStack.get(i).getScreenData());
 			}	
 		}
 	}
 	
 	public void handleMessage(Message message) {
+		// when game is initialized or screen size is set for the first time load the boostrap screen
 		if (message.Type == MessageType.GAME_INIT) {
 			// don't create screen if renderer is not initialized yet
 			if (Global.Renderer.Width > 0) {
 				if (_screenStack.getCount() > 0)
 					Logger.e(_tag, "screen stack should be empty on initialization");
 				_screenStack.add(Global.ScreenFactory.create(_boostrapScreen));
-				getActiveScreen().init();
+				getActiveScreen().init(null);
 			}
 			else
 				Manager.Message.subscribe(this, MessageType.SCREEN_SIZE_SET);
@@ -56,7 +57,7 @@ public class ScreenManager implements IMessageHandler {
 			if (_screenStack.getCount() > 0)
 				Logger.e(_tag, "screen stack should be empty on initialization");
 			_screenStack.add(Global.ScreenFactory.create(_boostrapScreen));
-			getActiveScreen().init();
+			getActiveScreen().init(null);
 		}
 	}
 
@@ -95,7 +96,7 @@ public class ScreenManager implements IMessageHandler {
 	}
 
 	// Should be overridden by child classes to handle specific screen codes
-	protected void onHandleCode(int code) {
+	protected void onHandleScreenData(ScreenData data) {
 		// Nothing to do
 	}
 	
@@ -108,24 +109,47 @@ public class ScreenManager implements IMessageHandler {
 	}
 	
 	// Ensure that transition is valid and begin transition process
-	private void handleCode(int code) {
+	private void handleScreenData(ScreenData data) {
 		// Disable allocation guard to perform cleanup during screen transition
 		AllocationGuard.sGuardActive = false;
 		Manager.Sound.close();
 		Manager.Sound.init();
 
-		switch (code) {
+		switch (data.getCode()) {
 		case ScreenCode.PUSH:
+			// add screen to top of stack and init with any input data
+			getActiveScreen().pause();
+			_screenStack.add(Global.ScreenFactory.create(data._actionScreen));
+			getActiveScreen().init(data.getInput());
 			break;
 		case ScreenCode.POP:
+			// remove top screen and pass any return data to next screen on stack
+			int oldType = getActiveScreen().getType();
+			getActiveScreen().close();
+			_screenStack.removeLast();
+			getActiveScreen().unpause();
+			if (data.getResponse() != null)
+				getActiveScreen().onHandleReturnData(oldType, data.getResponse());
 			break;
 		case ScreenCode.TRANSITION:
+			// remove top screen and add new top screen and init with any input data
+			getActiveScreen().close();
+			_screenStack.removeLast();
+			_screenStack.add(Global.ScreenFactory.create(data._actionScreen));
+			getActiveScreen().init(data.getInput());
 			break;
-		default:
-			onHandleCode(code);
-			break;
+		case ScreenCode.TRANSITION_ALL:
+			// remove all screens and add new top screen and init with any input data
+			while (_screenStack.getCount() > 0) {
+				getActiveScreen().close();
+				_screenStack.removeLast();
+			}
+			_screenStack.add(Global.ScreenFactory.create(data._actionScreen));
+			getActiveScreen().init(data.getInput());
 		}
 		
+		// TODO: should this come before or after parent logic?
+		onHandleScreenData(data);
 		
 		// Run garbage collector during downtime
 		Runtime.getRuntime().gc();

@@ -49,6 +49,9 @@ public class Area {
 			case Circle:
 				Logger.e(_tag, "Cannot sync circle to vertex");
 				break;
+			case Unknown:
+				Logger.e(_tag, "Unknown type");
+				break;
 			}
 			break;
 		default:

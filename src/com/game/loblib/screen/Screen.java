@@ -6,6 +6,7 @@ import com.game.loblib.messaging.Message;
 import com.game.loblib.messaging.MessageType;
 import com.game.loblib.sound.Sound;
 import com.game.loblib.utility.ButtonControlType;
+import com.game.loblib.utility.Logger;
 import com.game.loblib.utility.Manager;
 import com.game.loblib.utility.android.FixedSizeArray;
 
@@ -31,18 +32,20 @@ public abstract class Screen implements IMessageHandler {
 		return _screenData;
 	}
 	
-	public void update(float updateRatio, int screenUpdateType) {
-		// no default behavior
+	public final void update(float updateRatio, int screenUpdateType) {
+		switch (screenUpdateType) {
+		case ScreenUpdateType.ACTIVE:
+			onActiveUpdate(updateRatio);
+			break;
+		case ScreenUpdateType.INACTIVE:
+			onInactiveUpdate(updateRatio);
+			break;
+		default:
+			Logger.e(_tag, "Bad ScreenUpdateType");
+			break;
+		}
 	}
-	
-	public void onBackDown() {
-		// no default behavior
-	}
-	
-	public void onMenuDown() {
-		// no default behavior
-	}
-	
+
 	public int getBackButtonControl() {
 		return _backBtnCtl;
 	}
@@ -62,14 +65,14 @@ public abstract class Screen implements IMessageHandler {
 	}
 	
 	// subscribes to messages, adds entities to entity manager, and enables all behaviors
-	public final void init() {
+	public final void init(Object inputData) {
 		_screenData.setCode(ScreenCode.CONTINUE);
 		Manager.Message.subscribe(this, MessageType.SOUND_ENABLED);
 		if (_screenMusic != Sound.UNKNOWN)
 			Manager.Sound.playMusic(_screenMusic);
 		else
 			Manager.Sound.stopMusic();
-		onInit();
+		onInit(inputData);
 		int count = _entities.getCount();
 		for (int i = 0; i < count; i++)
 			Manager.Entity.addEntity(_entities.get(i));
@@ -85,7 +88,7 @@ public abstract class Screen implements IMessageHandler {
 	}
 	
 	public final void unpause() {
-		_screenData.setCode(ScreenCode.CONTINUE);
+		//_screenData.setCode(ScreenCode.CONTINUE);
 		Manager.Message.subscribe(this, MessageType.SOUND_ENABLED);
 		if (_screenMusic != Sound.UNKNOWN)
 			Manager.Sound.playMusic(_screenMusic);
@@ -110,8 +113,35 @@ public abstract class Screen implements IMessageHandler {
 		for (int i = 0; i < count; i++)
 			_entities.get(i).enableBehaviors();
 	}
+
+	/******************************************************************
+	 * 
+	 * functions below should be overriden by child classes
+	 * 
+	 ******************************************************************/
 	
-	protected abstract void onInit();
+	protected abstract void onInit(Object input);
+	
+	public void onBackDown() {
+		// no default behavior
+	}
+	
+	public void onMenuDown() {
+		// no default behavior
+	}
+	
+	protected void onActiveUpdate(float updateRatio) {
+		// No default behavior
+	}
+	
+	protected void onInactiveUpdate(float updateRatio) {
+		// No default behavior
+	}
+
+	// When screen above is popped return data is passed to this method if there is any; 'screenType' contains the type of the popped screen
+	protected void onHandleReturnData(int screenType, Object returnData) {
+		// No default behavior
+	}
 	
 	protected abstract void onPause();
 	
@@ -120,6 +150,6 @@ public abstract class Screen implements IMessageHandler {
 	protected abstract void onClose();
 	
 	protected void onHandleMessage(Message message) {
-		
+		// No default behavior
 	}
 }

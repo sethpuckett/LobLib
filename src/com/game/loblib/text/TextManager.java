@@ -1,7 +1,5 @@
 package com.game.loblib.text;
 
-import java.util.Arrays;
-
 import com.game.loblib.utility.Global;
 import com.game.loblib.utility.Logger;
 
