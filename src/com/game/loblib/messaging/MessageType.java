@@ -20,7 +20,8 @@ public class MessageType {
 	public final static long BUTTON_UP =			1 << 26;	//data: GameEntity
 	public final static long DRAG_START =			1 << 27;	//data: GameEntity
 	public final static long DRAG_STOP =			1 << 28;	//data: GameEntity
-	public final static long FADE_STATE_CHANGE =	1 << 29;	//data: GameEntity
+	public final static long DRAG_MOMENTUM_STOP =	1 << 29;	//data: GameEntity
+	public final static long FADE_STATE_CHANGE =	1 << 30;	//data: GameEntity
 	
 	public final static long ALL = 					Integer.MAX_VALUE;
 }

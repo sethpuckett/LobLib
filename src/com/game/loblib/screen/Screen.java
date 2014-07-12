@@ -88,13 +88,21 @@ public abstract class Screen implements IMessageHandler {
 	}
 	
 	public final void unpause() {
-		//_screenData.setCode(ScreenCode.CONTINUE);
 		Manager.Message.subscribe(this, MessageType.SOUND_ENABLED);
 		if (_screenMusic != Sound.UNKNOWN)
 			Manager.Sound.playMusic(_screenMusic);
+		
+		// clear screen data
+		_screenData.setActionScreen(ScreenType.UNKNOWN);
+		_screenData.setCode(ScreenCode.CONTINUE);
+		_screenData.setInput(null);
+		_screenData.setResponse(null);
+		
+		// unpause entities
 		int count = _entities.getCount();
 		for (int i = 0; i < count; i++)
 			_entities.get(i).unpause();
+		
 		onUnpause();
 	}
 	
