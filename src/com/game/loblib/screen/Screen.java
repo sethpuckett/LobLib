@@ -6,6 +6,7 @@ import com.game.loblib.messaging.Message;
 import com.game.loblib.messaging.MessageType;
 import com.game.loblib.sound.Sound;
 import com.game.loblib.utility.ButtonControlType;
+import com.game.loblib.utility.GameSettings;
 import com.game.loblib.utility.Logger;
 import com.game.loblib.utility.Manager;
 import com.game.loblib.utility.android.FixedSizeArray;
@@ -23,8 +24,15 @@ public abstract class Screen implements IMessageHandler {
 	protected int _backBtnCtl = ButtonControlType.IGNORE;
 	// How to handle menu button presses on this screen
 	protected int _menuBtnCtl = ButtonControlType.IGNORE;
+	// current screen level
+	protected int _screenLevel;
 	
-	public int getType() {
+	// these entities will not be paused when the screen is paused
+	protected FixedSizeArray<GameEntity> _noPauseEntities = new FixedSizeArray<GameEntity>(2048);
+	// these behaviors will not be paused when the screen is paused, regardless of the entity they are attached to
+	protected long _noPauseBehaviorTypes;
+	
+ 	public int getType() {
 		return _type;
 	}
 	
@@ -83,8 +91,10 @@ public abstract class Screen implements IMessageHandler {
 		onPause();
 		Manager.Message.unsubscribe(this, MessageType.SOUND_ENABLED);
 		int count = _entities.getCount();
-		for (int i = 0; i < count; i++)
-			_entities.get(i).pause();
+		for (int i = 0; i < count; i++) {
+			if (_noPauseEntities.find(_entities.get(i), false) == -1)
+				_entities.get(i).pause(_noPauseBehaviorTypes);
+		}
 	}
 	
 	public final void unpause() {
@@ -113,6 +123,19 @@ public abstract class Screen implements IMessageHandler {
 		for (int i = 0; i < count; i++)
 			Manager.Entity.freeEntity(_entities.get(i));
 		_entities.clear();
+	}
+	
+	public final int getScreenLevel() {
+		return _screenLevel;
+	}
+	
+	public final void setScreenLevel(int level) {
+		if (level < 0 || level > GameSettings.MAX_SCREEN_LEVELS)
+			Logger.e(_tag, "Invalid screen level");
+		
+		_screenLevel = level;
+		for (int i = 0; i < _entities.getCount(); i++)
+			_entities.get(i).ScreenLevel = level;
 	}
 	
 	// enables all entity behaviors

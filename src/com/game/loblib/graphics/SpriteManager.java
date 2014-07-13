@@ -1,19 +1,30 @@
 package com.game.loblib.graphics;
 
+import com.game.loblib.utility.GameSettings;
 import com.game.loblib.utility.Global;
+import com.game.loblib.utility.Logger;
 import com.game.loblib.utility.android.FixedSizeArray;
 import com.game.loblib.utility.area.Intersection;
 
 public class SpriteManager {
 	protected static final StringBuffer _tag = new StringBuffer("SpriteManager");
+	// store of available sprite objects
 	protected SpritePool _spritePool;
+	// store of available draw calls
 	protected DrawCallPool _drawCallPool;
+	// store of available text draw calls
 	protected TextDrawCallPool _textDrawCallPool;
+	// list of sprites (from _spritePool) currently in use
 	protected FixedSizeArray<Sprite> _allocatedSprites;
+	// each element of this array holds a list of draw calls for a single frame
 	protected FixedSizeArray<DrawCall>[] _spriteQueues;
+	// each element of this array holds a list of text draw calls for a single frame
 	protected FixedSizeArray<TextDrawCall>[] _textQueues;
-	protected SpriteSet[] _spriteSets;
+	// first array holds spriteSets for a single frame (sprite sets break draw calls up into layers); second array holds a list of sprite sets for a particular screen 
+	protected SpriteSet[][] _spriteSets;
+	// used to to swap _spriteQueue, _textQueue, and _spriteSets active frame
 	protected int _spriteQueueIndex;
+	// time since last update; used to update animations
 	protected float _updateTime = 0;
 
 	@SuppressWarnings("unchecked")
@@ -28,9 +39,13 @@ public class SpriteManager {
 		_spritePool = new SpritePool(4096);
 		_drawCallPool = new DrawCallPool(4096);
 		_textDrawCallPool = new TextDrawCallPool(32);
-		_spriteSets = new SpriteSet[2];
-		_spriteSets[0] = new SpriteSet();
-		_spriteSets[1] = new SpriteSet();
+		_spriteSets = new SpriteSet[2][GameSettings.MAX_SCREEN_LEVELS];
+		for (int i = 0; i < 2; i++) {
+			for (int j = 0; j < GameSettings.MAX_SCREEN_LEVELS; j++) {
+				_spriteSets[i][j] = new SpriteSet();
+				_spriteSets[i][j] = new SpriteSet();
+			}
+		}
 	}
 	
 	// Allocates and sets up a Sprite object based on provided image
@@ -53,7 +68,10 @@ public class SpriteManager {
 	}
 	
 	// Draws a sprite to a particular layer
-	public void draw(Sprite sprite, int layer) {
+	public void draw(Sprite sprite, int screenLevel, int layer) {
+		if (screenLevel > GameSettings.MAX_SCREEN_LEVELS)
+			Logger.e(_tag, "screenLevel cannot be greater than MAX_SCREENS");
+		
 		// lock the current sprite queue to prevent conflicts
 		synchronized (_spriteQueues[_spriteQueueIndex]) {
 			sprite.update(_updateTime);
@@ -61,8 +79,8 @@ public class SpriteManager {
 			if (!sprite.UseCamera || Intersection.check(Global.Camera.CameraArea, sprite.Area)) {
 				// make a draw call with the current sprite and add it to the sprite queue
 				_spriteQueues[_spriteQueueIndex].add(makeDrawCall(sprite));
-				// add the sprite queue index of the draw call to the current sprite set
-				_spriteSets[_spriteQueueIndex].addIndex(_spriteQueues[_spriteQueueIndex].getCount() - 1, layer);
+				// add the sprite queue index of the draw call to the current sprite set at the specified screenLevel
+				_spriteSets[_spriteQueueIndex][screenLevel].addIndex(_spriteQueues[_spriteQueueIndex].getCount() - 1, layer);
 			}
 		}
 	}
@@ -88,7 +106,8 @@ public class SpriteManager {
 			_textDrawCallPool.release(_textQueues[_spriteQueueIndex].get(i));
 		_spriteQueues[_spriteQueueIndex].clear();
 		_textQueues[_spriteQueueIndex].clear();
-		_spriteSets[_spriteQueueIndex].clear();
+		for (int i = 0; i < GameSettings.MAX_SCREEN_LEVELS; i++)
+			_spriteSets[_spriteQueueIndex][i].clear();
 	}
 
 	public void onPause() {

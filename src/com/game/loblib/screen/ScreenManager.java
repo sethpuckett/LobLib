@@ -4,6 +4,7 @@ import com.game.loblib.messaging.IMessageHandler;
 import com.game.loblib.messaging.Message;
 import com.game.loblib.messaging.MessageType;
 import com.game.loblib.utility.ButtonControlType;
+import com.game.loblib.utility.GameSettings;
 import com.game.loblib.utility.Global;
 import com.game.loblib.utility.Logger;
 import com.game.loblib.utility.Manager;
@@ -114,13 +115,18 @@ public class ScreenManager implements IMessageHandler {
 		AllocationGuard.sGuardActive = false;
 		Manager.Sound.close();
 		Manager.Sound.init();
+		int screenLevel = 0;
 
 		switch (data.getCode()) {
 		case ScreenCode.PUSH:
 			// add screen to top of stack and init with any input data
+			screenLevel = getActiveScreen().getScreenLevel();
+			if (screenLevel + 1 > GameSettings.MAX_SCREEN_LEVELS)
+				Logger.e(_tag, "Max screen levels exceded");
 			getActiveScreen().pause();
 			_screenStack.add(Global.ScreenFactory.create(data._actionScreen));
 			getActiveScreen().init(data.getInput());
+			getActiveScreen().setScreenLevel(screenLevel + 1);
 			break;
 		case ScreenCode.POP:
 			// remove top screen and pass any return data to next screen on stack
@@ -133,10 +139,12 @@ public class ScreenManager implements IMessageHandler {
 			break;
 		case ScreenCode.TRANSITION:
 			// remove top screen and add new top screen and init with any input data
+			screenLevel = getActiveScreen().getScreenLevel();
 			getActiveScreen().close();
 			_screenStack.removeLast();
 			_screenStack.add(Global.ScreenFactory.create(data._actionScreen));
 			getActiveScreen().init(data.getInput());
+			getActiveScreen().setScreenLevel(screenLevel);
 			break;
 		case ScreenCode.TRANSITION_ALL:
 			// remove all screens and add new top screen and init with any input data

@@ -11,6 +11,7 @@ public class GameEntity extends AllocationGuard {
 	protected static final StringBuffer _tag = new StringBuffer("GameEntity");
 
 	public EntityAttributes Attributes = new EntityAttributes();
+	public int ScreenLevel;
 	
 	protected FixedSizeArray<Behavior> _behaviors = new FixedSizeArray<Behavior>(32);
 	protected long _enabledBehaviorTypes;
@@ -27,6 +28,17 @@ public class GameEntity extends AllocationGuard {
 		if (!_paused) {
 			_enabledBehaviorTypes = getEnabledBehaviors();
 			disableBehaviors();
+			_paused = true;
+		}
+		else
+			Logger.w(_tag, "cannot pause; entity already paused");
+	}
+	
+	// disables all behaviors, except those in behaviorExceptions
+	public void pause(long behaviorExceptionTypes) {
+		if (!_paused) {
+			_enabledBehaviorTypes = getEnabledBehaviors();
+			disableBehaviors(BehaviorType.ALL ^ behaviorExceptionTypes);
 			_paused = true;
 		}
 		else

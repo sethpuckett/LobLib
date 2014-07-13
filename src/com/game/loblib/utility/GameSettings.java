@@ -22,4 +22,6 @@ public class GameSettings {
 		editor.putBoolean("soundEnabled", enabled);
 		editor.commit();
 	}
+	
+	public final static int MAX_SCREEN_LEVELS = 4;
 }

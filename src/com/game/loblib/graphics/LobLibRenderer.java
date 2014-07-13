@@ -37,7 +37,7 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 	
 	protected FixedSizeArray<DrawCall> _drawQueue = null;
 	protected FixedSizeArray<TextDrawCall> _textDrawQueue = null;
-	protected SpriteSet _spriteSet = null;
+	protected SpriteSet _spriteSets[] = null;
 	protected Object _drawLock = new Object();
 	protected boolean _drawQueueSwapped = false;
 	protected boolean _paused;
@@ -75,33 +75,36 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 					float cameraY = Global.Camera.CameraArea.Position.Y;
 					float xOffset = 0;
 					float yOffset = 0;
-					for (int layer = 0; layer < _spriteSet.getLayerCount(); layer++) {
-						int[] indices = _spriteSet.getLayer(layer);
-						int indexCount = _spriteSet.getSpriteCount(layer);
-						for (int i = 0; i < indexCount; i++) {
-							DrawCall call = _drawQueue.get(indices[i]);
-							gl.glColor4f(call.Alpha, call.Alpha, call.Alpha, call.Alpha);
-							gl.glBindTexture(GL10.GL_TEXTURE_2D, call.TextureId);
-							
-							if (call.UseCamera) {
-								xOffset = cameraX;
-								yOffset = cameraY - Global.Camera.YOffset;
-							}
-							else {
-								xOffset = 0;
-								yOffset = 0;
-							}
-		
-							((GL11) gl).glTexParameteriv(GL10.GL_TEXTURE_2D, 
-						            GL11Ext.GL_TEXTURE_CROP_RECT_OES, 
-						           call.Frames, 
-						           call.FrameOffset);
+					for (int screenLevel = 0; screenLevel < _spriteSets.length; screenLevel++) {
+						SpriteSet set = _spriteSets[screenLevel];
+						for (int layer = 0; layer < set.getLayerCount(); layer++) {
+							int[] indices = set.getLayer(layer);
+							int indexCount = set.getSpriteCount(layer);
+							for (int i = 0; i < indexCount; i++) {
+								DrawCall call = _drawQueue.get(indices[i]);
+								gl.glColor4f(call.Alpha, call.Alpha, call.Alpha, call.Alpha);
+								gl.glBindTexture(GL10.GL_TEXTURE_2D, call.TextureId);
 								
-							((GL11Ext) gl).glDrawTexfOES(call.PositionX - xOffset, 
-									call.PositionY - yOffset, 
-									0f, 
-									call.Width, 
-									call.Height);
+								if (call.UseCamera) {
+									xOffset = cameraX;
+									yOffset = cameraY - Global.Camera.YOffset;
+								}
+								else {
+									xOffset = 0;
+									yOffset = 0;
+								}
+			
+								((GL11) gl).glTexParameteriv(GL10.GL_TEXTURE_2D, 
+							            GL11Ext.GL_TEXTURE_CROP_RECT_OES, 
+							           call.Frames, 
+							           call.FrameOffset);
+									
+								((GL11Ext) gl).glDrawTexfOES(call.PositionX - xOffset, 
+										call.PositionY - yOffset, 
+										0f, 
+										call.Width, 
+										call.Height);
+							}
 						}
 					}
 					
@@ -275,10 +278,10 @@ public class LobLibRenderer implements GLSurfaceView.Renderer {
 	public synchronized void waitDrawingComplete() {
 	}
 	
-	public void setDrawQueue(FixedSizeArray<DrawCall> queue, SpriteSet set) {
+	public void setDrawQueue(FixedSizeArray<DrawCall> queue, SpriteSet[] sets) {
 		synchronized (_drawLock) {
 			_drawQueue = queue;
-			_spriteSet = set;
+			_spriteSets = sets;
 			_drawQueueSwapped = true;
 			_drawLock.notify();
 		}
