@@ -19,6 +19,8 @@ public class Camera implements IMessageHandler {
 	public GameEntity Anchor = null;
 	// The amount of X,Y distance the anchor can move from the camera's focal point before tracking will start
 	public Vertex Threshold = new Vertex();
+	// If false then camera will not track anchor past threshold
+	public boolean TrackingEnabled = true;
 	// The total area the camera can cover; the camera will not scroll outside this area
 	public Rectangle CoveredArea;
 	// The area currently visible to the camera
@@ -106,14 +108,14 @@ public class Camera implements IMessageHandler {
 		boolean xchange = false;
 		boolean ychange = false;
 		
-		if (Math.abs(anchorCenter.X - center.X) > Threshold.X) {
+		if (TrackingEnabled && Math.abs(anchorCenter.X - center.X) > Threshold.X) {
 			xchange = true;
 			if (anchorCenter.X < center.X)
 				center.X = anchorCenter.X + Threshold.X;
 			else
 				center.X = anchorCenter.X - Threshold.X;
 		}
-		if (Math.abs(anchorCenter.Y - center.Y) > Threshold.Y) {
+		if (TrackingEnabled && Math.abs(anchorCenter.Y - center.Y) > Threshold.Y) {
 			ychange = true;
 			if (anchorCenter.Y < center.Y)
 				center.Y = anchorCenter.Y + Threshold.Y;
